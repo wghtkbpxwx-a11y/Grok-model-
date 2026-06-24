@@ -1389,6 +1389,46 @@ function renderLinks() {
 
 renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 
+// ── DIAGNOSTIC TEST FOR FETCH/API SUPPORT ──
+(function() {
+  console.log('=== TESLA BROWSER DIAGNOSTICS ===');
+  console.log('User Agent:', navigator.userAgent);
+  console.log('Fetch available:', typeof fetch !== 'undefined');
+  console.log('XMLHttpRequest available:', typeof XMLHttpRequest !== 'undefined');
+  console.log('Credentials:', navigator.credentials ? 'available' : 'not available');
+
+  // Test simple fetch
+  if (typeof fetch !== 'undefined') {
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=0&longitude=0&current=temperature_2m')
+      .then(function(r) { console.log('✓ Fetch works, status:', r.status); })
+      .catch(function(e) { console.error('✗ Fetch blocked:', e.message); });
+  }
+})();
+
+// ── HTTP REQUEST HELPER (tries fetch, falls back to XHR) ──
+function httpGet(url) {
+  if (typeof fetch !== 'undefined') {
+    return fetch(url).then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
+  }
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url);
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch(e) { reject(new Error('JSON parse error')); }
+      } else {
+        reject(new Error('HTTP ' + xhr.status));
+      }
+    };
+    xhr.onerror = function() { reject(new Error('Network error')); };
+    xhr.send();
+  });
+}
+
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
   try {
@@ -1399,21 +1439,18 @@ function fetchCached(url, key, ttlMin) {
     }
   } catch(e) {}
   if (inflightFetches[key]) return inflightFetches[key];
-  function tryFetch(fetchUrl) {
-    return fetch(fetchUrl).then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }).then(function(data) {
+  function tryRequest(requestUrl) {
+    return httpGet(requestUrl).then(function(data) {
       saveLS(key, {t: Date.now(), data: data});
       return data;
     });
   }
-  var p = tryFetch(url).catch(function(e1) {
-    console.warn('Fetch failed for ' + key + ', trying CORS proxy:', e1.message || e1);
+  var p = tryRequest(url).catch(function(e1) {
+    console.warn('Request failed for ' + key + ', trying CORS proxy:', e1.message || e1);
     var corsUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    return tryFetch(corsUrl);
+    return tryRequest(corsUrl);
   }).catch(function(e) {
-    console.error('All fetch attempts failed for ' + key + ':', url, '|', e.message || e);
+    console.error('All request attempts failed for ' + key + ':', url, '|', e.message || e);
     return null;
   });
   inflightFetches[key] = p;
