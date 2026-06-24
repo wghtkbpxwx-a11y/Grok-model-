@@ -325,6 +325,30 @@ input[type="color"]:hover{border-color:var(--line2)}
 
 <main id="main">
 
+  <!-- DEBUG INFO -->
+  <div id="debug-cache" style="padding:12px;margin-bottom:12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:12px;border:1px solid rgba(255,255,255,0.1)">
+    <div id="cache-status">Checking cache...</div>
+  </div>
+  <script>
+    // Show cache status immediately
+    if (typeof DASHBOARD_CACHE !== 'undefined') {
+      var status = 'Cache loaded: ';
+      if (DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
+        status += 'Weather (' + DASHBOARD_CACHE.weather.current.temperature_2m + '°C) ';
+      }
+      if (DASHBOARD_CACHE.news) {
+        var newsCount = 0;
+        for (var key in DASHBOARD_CACHE.news) {
+          if (DASHBOARD_CACHE.news[key].items) newsCount += DASHBOARD_CACHE.news[key].items.length;
+        }
+        status += 'News (' + newsCount + ' articles) ';
+      }
+      document.getElementById('cache-status').innerHTML = status;
+    } else {
+      document.getElementById('cache-status').innerHTML = '<span style="color:#ff6b6b">ERROR: DASHBOARD_CACHE not defined!</span>';
+    }
+  </script>
+
   <!-- LIVE PANEL: GLANCEABLE DASHBOARD ESSENTIALS -->
   <section class="panel on" id="p-live">
     <!-- Hero: Time + Weather -->
