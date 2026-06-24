@@ -1408,47 +1408,80 @@ renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 
 // ── HTTP REQUEST HELPER (tries fetch, falls back to XHR) ──
 function httpGet(url) {
-  var timeout = new Promise(function(_, reject) {
-    setTimeout(function() { reject(new Error('Request timeout after 15s')); }, 15000);
-  });
+  // First, check if this is cached weather/news data from GitHub workflow
+  if (url.includes('api.open-meteo.com')) {
+    return new Promise(function(resolve) {
+      fetch('dashboard-data.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.weather) {
+            resolve(data.weather);
+          } else {
+            throw new Error('No cached weather');
+          }
+        })
+        .catch(function() {
+          // Fallback to direct API if cache unavailable
+          return tryDirectRequest();
+        });
+    });
+  }
 
-  var actualUrl = url;
-  // If using API proxy (Vercel deployment) and URL is an external API, proxy through backend
-  if (API_BASE) {
-    if (url.includes('api.open-meteo.com')) {
-      var match = url.match(/latitude=([^&]+)&longitude=([^&]+)/);
-      if (match) {
-        actualUrl = API_BASE + '/api/weather?lat=' + match[1] + '&lon=' + match[2];
-      }
-    } else if (url.includes('api.rss2json.com') || url.includes('rss2json')) {
-      actualUrl = API_BASE + '/api/feeds?url=' + encodeURIComponent(url);
+  if (url.includes('rss2json.com')) {
+    return new Promise(function(resolve) {
+      fetch('dashboard-data.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.news) {
+            // Find matching source from cache
+            for (var source in data.news) {
+              if (url.includes(encodeURIComponent(source)) || data.news[source]) {
+                resolve(data.news[source]);
+                return;
+              }
+            }
+            throw new Error('No matching cached news');
+          }
+          throw new Error('No cached news');
+        })
+        .catch(function() {
+          return tryDirectRequest();
+        });
+    });
+  }
+
+  function tryDirectRequest() {
+    var timeout = new Promise(function(_, reject) {
+      setTimeout(function() { reject(new Error('Request timeout after 15s')); }, 15000);
+    });
+
+    var request;
+    if (typeof fetch !== 'undefined') {
+      request = fetch(url).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    } else {
+      request = new Promise(function(resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.onload = function() {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch(e) { reject(new Error('JSON parse error')); }
+          } else {
+            reject(new Error('HTTP ' + xhr.status));
+          }
+        };
+        xhr.onerror = function() { reject(new Error('Network error')); };
+        xhr.send();
+      });
     }
+
+    return Promise.race([request, timeout]);
   }
 
-  var request;
-  if (typeof fetch !== 'undefined') {
-    request = fetch(actualUrl).then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    });
-  } else {
-    request = new Promise(function(resolve, reject) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', actualUrl);
-      xhr.onload = function() {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          try { resolve(JSON.parse(xhr.responseText)); }
-          catch(e) { reject(new Error('JSON parse error')); }
-        } else {
-          reject(new Error('HTTP ' + xhr.status));
-        }
-      };
-      xhr.onerror = function() { reject(new Error('Network error')); };
-      xhr.send();
-    });
-  }
-
-  return Promise.race([request, timeout]);
+  return tryDirectRequest();
 }
 
 // ── FETCH CACHED ──

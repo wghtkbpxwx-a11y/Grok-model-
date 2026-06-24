@@ -1,0 +1,76 @@
+name: Update Dashboard Data
+
+on:
+  schedule:
+    # Run every 30 minutes
+    - cron: '*/30 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Fetch Weather and News Data
+        run: |
+          node - <<'EOF'
+          const fs = require('fs');
+
+          async function fetchData() {
+            const data = {
+              weather: null,
+              news: null,
+              updated: new Date().toISOString()
+            };
+
+            try {
+              // Fetch weather for Vancouver (default location)
+              const weatherRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code,is_day,weather_description');
+              if (weatherRes.ok) {
+                data.weather = await weatherRes.json();
+              }
+            } catch(e) {
+              console.error('Weather fetch failed:', e.message);
+            }
+
+            try {
+              // Fetch news from multiple sources
+              const sources = [
+                'https://globalnews.ca/bc/feed/',
+                'https://www.cbc.ca/cmlink/rss-canada-britishcolumbia',
+                'https://www.bbc.com/news/rss.xml'
+              ];
+
+              const newsResults = {};
+              for (const source of sources) {
+                try {
+                  const encodedUrl = encodeURIComponent(source);
+                  const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodedUrl}`);
+                  if (res.ok) {
+                    const json = await res.json();
+                    newsResults[source] = json;
+                  }
+                } catch(e) {
+                  console.error(`Failed to fetch ${source}:`, e.message);
+                }
+              }
+              data.news = newsResults;
+            } catch(e) {
+              console.error('News fetch failed:', e.message);
+            }
+
+            // Save to file
+            fs.writeFileSync('dashboard-data.json', JSON.stringify(data, null, 2));
+            console.log('Data updated successfully');
+          }
+
+          fetchData().catch(console.error);
+          EOF
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add dashboard-data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update dashboard data" && git push)
