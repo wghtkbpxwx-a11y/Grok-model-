@@ -10,118 +10,290 @@
             --card: #1A1A1A;
             --accent: #E82127;
             --text: #FFFFFF;
+            --text-secondary: #A0A0A0;
         }
+        
         * { margin:0; padding:0; box-sizing:border-box; }
+        
         body {
-            font-family: -apple-system, system-ui, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             padding: 20px;
         }
+        
         header {
             display: flex;
             align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
+            justify-content: space-between;
+            margin-bottom: 24px;
         }
+        
+        .title { font-size: 32px; font-weight: 600; }
+        
         .search {
-            flex: 1;
-            padding: 16px 20px;
+            width: 320px;
+            padding: 14px 20px;
             background: #252525;
-            border: none;
+            border: 1px solid #333;
             border-radius: 12px;
             color: white;
-            font-size: 18px;
+            font-size: 17px;
         }
+        
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 24px 0 12px;
+        }
+        
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 16px;
         }
+        
         .tile {
             background: var(--card);
             border-radius: 16px;
             padding: 24px;
-            transition: all 0.2s ease;
-            border: 1px solid #333;
             text-decoration: none;
             color: var(--text);
+            border: 1px solid #333;
+            transition: all 0.2s ease;
             display: block;
+            cursor: pointer;
         }
+        
         .tile:active {
-            transform: scale(0.98);
+            transform: scale(0.985);
             border-color: var(--accent);
         }
-        .emoji { font-size: 42px; display: block; margin-bottom: 8px; }
-        .tile h2 { font-size: 22px; margin-bottom: 8px; }
-        .tile p { opacity: 0.8; font-size: 15px; line-height: 1.4; }
+        
+        .emoji { font-size: 42px; margin-bottom: 12px; display: block; }
+        .tile h2 { font-size: 21px; font-weight: 600; margin-bottom: 6px; }
+        .tile p { font-size: 15px; color: var(--text-secondary); }
+        
         .home-btn {
             position: fixed;
             bottom: 30px;
             right: 30px;
             background: var(--accent);
             color: white;
-            width: 60px;
-            height: 60px;
+            width: 58px;
+            height: 58px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 28px;
-            box-shadow: 0 4px 20px rgba(232, 33, 39, 0.4);
+            font-size: 26px;
+            box-shadow: 0 4px 20px rgba(232, 33, 39, 0.35);
             z-index: 1000;
             text-decoration: none;
         }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            padding: 40px 20px;
+        }
+        
+        .modal-content {
+            background: var(--card);
+            border-radius: 20px;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 24px;
+            border: 1px solid #333;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-header h2 { font-size: 24px; }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 28px;
+            cursor: pointer;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 18px 20px;
+            background: #252525;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            text-decoration: none;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        
+        .menu-item:active {
+            background: #333;
+            transform: scale(0.985);
+        }
+        
+        .menu-item .label { flex: 1; font-size: 17px; font-weight: 500; }
+        .menu-item .arrow { color: var(--text-secondary); font-size: 22px; }
     </style>
 </head>
 <body>
     <header>
-        <h1 style="font-size:28px;">Tesla Launcher</h1>
-        <input type="text" id="search" class="search" placeholder="Search tools and sites...">
+        <div class="title">Tesla Launcher</div>
+        <input type="text" id="search" class="search" placeholder="Search categories...">
     </header>
 
+    <div class="section-title">Quick Access</div>
     <div class="grid" id="tiles"></div>
 
     <a href="#" class="home-btn" onclick="window.location.reload(); return false;">🏠</a>
 
+    <!-- Modal -->
+    <div id="modal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopImmediatePropagation()">
+            <div class="modal-header">
+                <h2 id="modal-title"></h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
     <script>
         const categories = [
-            { emoji: "🌤", title: "Dashboard", desc: "Weather, Traffic, Gas, AQHI", url: "https://weather.gc.ca/" },
-            { emoji: "🤖", title: "AI Tools", desc: "Claude, ChatGPT, Grok, Gemini", url: "https://claude.ai/" },
-            { emoji: "⚕", title: "Clinical", desc: "Medical resources & calculators", url: "https://www.rxfiles.ca/" },
-            { emoji: "🧮", title: "Tools", desc: "Calculators, Converter, Timer", url: "https://www.desmos.com/scientific" },
-            { emoji: "📍", title: "Local & EV", desc: "ABRP, PlugShare, DriveBC", url: "https://abetterrouteplanner.com/" },
-            { emoji: "🎵", title: "Media", desc: "Spotify, YouTube Music", url: "https://open.spotify.com/" }
+            {
+                emoji: "🤖",
+                title: "AI Tools",
+                desc: "Multiple AI assistants",
+                items: [
+                    { name: "Claude", url: "https://claude.ai/" },
+                    { name: "ChatGPT", url: "https://chat.openai.com/" },
+                    { name: "Grok", url: "https://grok.x.ai/" },
+                    { name: "Gemini", url: "https://gemini.google.com/" },
+                    { name: "Perplexity", url: "https://www.perplexity.ai/" }
+                ]
+            },
+            {
+                emoji: "⚕",
+                title: "Clinical",
+                desc: "Medical resources & calculators",
+                items: [
+                    { name: "RxFiles", url: "https://www.rxfiles.ca/" },
+                    { name: "UpToDate", url: "https://www.uptodate.com/" },
+                    { name: "PubMed", url: "https://pubmed.ncbi.nlm.nih.gov/" },
+                    { name: "BC PharmaCare", url: "https://www2.gov.bc.ca/gov/content/health/health-drug-coverage/pharmacare-for-bc-residents" },
+                    { name: "Medical Calculators", url: "https://www.mdcalc.com/" }
+                ]
+            },
+            {
+                emoji: "🧮",
+                title: "Tools",
+                desc: "Calculators & utilities",
+                items: [
+                    { name: "Scientific Calculator", url: "https://www.desmos.com/scientific" },
+                    { name: "Unit Converter", url: "https://www.unitconverters.net/" },
+                    { name: "Fuel Cost Calculator", url: "https://www.gasbuddy.com/" },
+                    { name: "Timer & Stopwatch", url: "https://www.timeanddate.com/stopwatch/" }
+                ]
+            },
+            {
+                emoji: "📍",
+                title: "Local & EV",
+                desc: "Navigation & charging",
+                items: [
+                    { name: "A Better Routeplanner (ABRP)", url: "https://abetterrouteplanner.com/" },
+                    { name: "PlugShare", url: "https://www.plugshare.com/" },
+                    { name: "DriveBC", url: "https://www.drivebc.ca/" },
+                    { name: "TransLink", url: "https://www.translink.ca/" },
+                    { name: "Supercharge.info", url: "https://supercharge.info/" }
+                ]
+            },
+            {
+                emoji: "🎵",
+                title: "Media",
+                desc: "Music & streaming",
+                items: [
+                    { name: "Spotify", url: "https://open.spotify.com/" },
+                    { name: "YouTube Music", url: "https://music.youtube.com/" },
+                    { name: "Crave", url: "https://www.crave.ca/" }
+                ]
+            }
         ];
 
         const container = document.getElementById('tiles');
         const searchInput = document.getElementById('search');
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
 
         function renderTiles(filtered) {
             container.innerHTML = '';
-            filtered.forEach(cat => {
-                const tile = document.createElement('a');
+            filtered.forEach((cat, index) => {
+                const tile = document.createElement('div');
                 tile.className = 'tile';
-                tile.href = cat.url;
-                tile.target = '_blank';
                 tile.innerHTML = `
                     <span class="emoji">${cat.emoji}</span>
                     <h2>${cat.title}</h2>
                     <p>${cat.desc}</p>
                 `;
+                tile.onclick = () => openModal(cat);
                 container.appendChild(tile);
             });
         }
 
+        function openModal(category) {
+            modalTitle.textContent = category.emoji + " " + category.title;
+            modalBody.innerHTML = '';
+
+            category.items.forEach(item => {
+                const link = document.createElement('a');
+                link.className = 'menu-item';
+                link.href = item.url;
+                link.target = '_blank';
+                link.innerHTML = `
+                    <span class="label">${item.name}</span>
+                    <span class="arrow">›</span>
+                `;
+                modalBody.appendChild(link);
+            });
+
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Initial render
         renderTiles(categories);
 
+        // Search
         searchInput.addEventListener('input', () => {
             const term = searchInput.value.toLowerCase().trim();
             const filtered = categories.filter(c => 
-                c.title.toLowerCase().includes(term) || c.desc.toLowerCase().includes(term)
+                c.title.toLowerCase().includes(term) || 
+                c.desc.toLowerCase().includes(term)
             );
             renderTiles(filtered.length ? filtered : categories);
         });
+
+        // Close modal when clicking outside
+        modal.onclick = closeModal;
     </script>
 </body>
 </html>
