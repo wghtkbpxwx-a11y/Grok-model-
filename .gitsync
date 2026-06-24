@@ -1,8 +1,0 @@
-# GitHub Sync Configuration
-GITHUB_OWNER=wghtkbpxwx-a11y
-GITHUB_REPO=Grok-model-
-GITHUB_BRANCHES=(main claude/remove-code-module-g9jstn gh-pages)
-
-# This file documents the sync setup
-# The post-commit hook in .git/hooks/post-commit will attempt to sync automatically
-# If automatic sync fails, use: ./sync-to-github.sh <branch>

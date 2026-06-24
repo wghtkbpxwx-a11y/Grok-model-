@@ -730,6 +730,7 @@ function toggleStocksDropdown() {
   }
 }
 document.querySelectorAll('.dock-btn').forEach(function(btn) {
+  if (!btn.dataset.p) return; // skip the "More" submenu trigger (handled separately)
   btn.addEventListener('click', function() {
     if (btn.dataset.p === 'stocks') {
       toggleStocksDropdown();
