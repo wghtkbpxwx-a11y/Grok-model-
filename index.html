@@ -571,13 +571,16 @@ var themePresets = {
   lavender: {accent:'#a78bfa'}
 };
 function applyColors() {
-  var accent = settings.accentColor || themePresets.default.accent;
-  document.documentElement.style.setProperty('--accent', accent);
-  document.getElementById('accent-picker').value = accent;
-  var presets = document.querySelectorAll('.theme-preset');
-  presets.forEach(function(p) { p.classList.remove('on'); });
-  var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
-  if (preset) preset.classList.add('on');
+  try {
+    var accent = settings.accentColor || themePresets.default.accent;
+    document.documentElement.style.setProperty('--accent', accent);
+    var picker = document.getElementById('accent-picker');
+    if (picker) picker.value = accent;
+    var presets = document.querySelectorAll('.theme-preset');
+    presets.forEach(function(p) { p.classList.remove('on'); });
+    var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
+    if (preset) preset.classList.add('on');
+  } catch(e) { console.warn('applyColors error:', e); }
 }
 function resetSettings() {
   settings = JSON.parse(JSON.stringify(defaultSettings));
@@ -672,7 +675,15 @@ function initDragAndDrop() {
   });
 }
 
-applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder(); initDragAndDrop();
+try {
+  console.log('Starting initialization...');
+  applyTheme(); console.log('✓ applyTheme');
+  applyModules(); console.log('✓ applyModules');
+  syncToggles(); console.log('✓ syncToggles');
+  applyColors(); console.log('✓ applyColors');
+  applyDockOrder(); console.log('✓ applyDockOrder');
+  initDragAndDrop(); console.log('✓ initDragAndDrop');
+} catch(e) { console.error('Init error:', e.message); }
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
