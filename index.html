@@ -487,6 +487,55 @@ input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-r
     <button class="btn btn-gh" onclick="resetSettings()">Reset to defaults</button>
   </section>
 
+  <!-- BOOKMARKS PANEL -->
+  <section class="panel" id="p-saved">
+    <div class="sec-title">📌 Saved Articles</div>
+    <div class="cardgroup" id="bookmarks-list"><div class="muted">No saved articles yet. Click the bookmark icon on any story.</div></div>
+  </section>
+
+  <!-- TASKS/TODO PANEL -->
+  <section class="panel" id="p-tasks">
+    <div class="sec-title">✓ Tasks</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="task-input" placeholder="Add a new task..." class="capbox" style="min-height:50px;margin-bottom:10px">
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-pri" onclick="addTask()">Add Task</button>
+        <button class="btn btn-gh" onclick="clearCompletedTasks()">Clear Done</button>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--t3)" id="task-count"></div>
+    </div>
+    <div class="cardgroup" id="tasks-list"><div class="muted">No tasks. Add one to get started!</div></div>
+  </section>
+
+  <!-- STOCKS PANEL -->
+  <section class="panel" id="p-stocks">
+    <div class="sec-title">📈 Stock Watchlist</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="stock-input" placeholder="Add ticker (e.g., AAPL, MSFT)" class="capbox" style="min-height:50px;margin-bottom:10px;text-transform:uppercase">
+      <button class="btn btn-pri" onclick="addStock()">Add to Watchlist</button>
+    </div>
+    <div class="cardgroup" id="stocks-list"><div class="muted">Add stocks to track them here.</div></div>
+  </section>
+
+  <!-- WEATHER FORECAST PANEL -->
+  <section class="panel" id="p-weather">
+    <div class="sec-title">🌤️ 7-Day Forecast</div>
+    <div id="forecast-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+      <div class="muted">Loading forecast...</div>
+    </div>
+  </section>
+
+  <!-- QUICK LINKS PANEL -->
+  <section class="panel" id="p-links">
+    <div class="sec-title">🔗 Quick Links</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="link-title" placeholder="Link title" class="capbox" style="min-height:45px;margin-bottom:8px">
+      <input type="url" id="link-url" placeholder="https://example.com" class="capbox" style="min-height:45px;margin-bottom:10px">
+      <button class="btn btn-pri" onclick="addLink()">Add Link</button>
+    </div>
+    <div class="split" id="links-list"><div class="muted">No links yet. Add your favorites!</div></div>
+  </section>
+
 </main>
 
 <nav id="dock">
@@ -498,6 +547,12 @@ input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-r
   <div class="dock-sep"></div>
   <button class="dock-btn" data-p="stream" draggable="true">Streaming</button>
   <button class="dock-btn" data-p="learn" draggable="true">Learning</button>
+  <div class="dock-sep"></div>
+  <button class="dock-btn" data-p="saved" draggable="true">Saved</button>
+  <button class="dock-btn" data-p="tasks" draggable="true">Tasks</button>
+  <button class="dock-btn" data-p="stocks" draggable="true">Stocks</button>
+  <button class="dock-btn" data-p="weather" draggable="true">Weather</button>
+  <button class="dock-btn" data-p="links" draggable="true">Links</button>
   <div class="dock-sep"></div>
   <button class="dock-btn" data-p="set" draggable="true" aria-label="Settings">⚙</button>
 </nav>
@@ -685,6 +740,181 @@ try {
   initDragAndDrop(); console.log('✓ initDragAndDrop');
 } catch(e) { console.error('Init error:', e.message); }
 
+// ── BOOKMARKS ──
+var bookmarks = [];
+try { bookmarks = JSON.parse(localStorage.getItem('bookmarks_v1') || '[]'); } catch(e) { bookmarks = []; }
+function saveBookmark(title, link, source) {
+  bookmarks.unshift({title: title, link: link, source: source, date: new Date().toLocaleDateString()});
+  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  renderBookmarks();
+}
+function deleteBookmark(idx) {
+  bookmarks.splice(idx, 1);
+  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  renderBookmarks();
+}
+function renderBookmarks() {
+  var el = document.getElementById('bookmarks-list');
+  if (!bookmarks.length) { el.innerHTML = '<div class="muted">No saved articles yet. Click the bookmark icon on any story.</div>'; return; }
+  var html = '';
+  bookmarks.forEach(function(b, i) {
+    html += '<a class="feed-item" href="' + escHtml(b.link) + '" target="_blank" rel="noopener">'
+      + '<div class="feed-t">' + escHtml(b.title) + '</div>'
+      + '<div class="feed-m"><span class="feed-src">' + escHtml(b.source) + '</span><span>' + b.date + '</span></div>'
+      + '</a>';
+  });
+  el.innerHTML = html;
+}
+
+// ── TASKS ──
+var tasks = [];
+try { tasks = JSON.parse(localStorage.getItem('tasks_v1') || '[]'); } catch(e) { tasks = []; }
+function addTask() {
+  var inp = document.getElementById('task-input');
+  if (!inp.value.trim()) return;
+  tasks.push({text: inp.value.trim(), done: false, date: new Date().toLocaleDateString()});
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  inp.value = '';
+  renderTasks();
+}
+function toggleTask(idx) {
+  tasks[idx].done = !tasks[idx].done;
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function deleteTask(idx) {
+  tasks.splice(idx, 1);
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function clearCompletedTasks() {
+  tasks = tasks.filter(function(t) { return !t.done; });
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function renderTasks() {
+  var done = tasks.filter(function(t) { return t.done; }).length;
+  var total = tasks.length;
+  document.getElementById('task-count').textContent = done + ' of ' + total + ' completed';
+  var el = document.getElementById('tasks-list');
+  if (!total) { el.innerHTML = '<div class="muted">No tasks. Add one to get started!</div>'; return; }
+  var html = '';
+  tasks.forEach(function(t, i) {
+    html += '<div class="noterow" style="align-items:center">'
+      + '<input type="checkbox" onclick="toggleTask(' + i + ')" ' + (t.done ? 'checked' : '') + ' style="width:20px;height:20px;cursor:pointer">'
+      + '<div class="n-txt" style="' + (t.done ? 'text-decoration:line-through;opacity:0.6;' : '') + '">' + escHtml(t.text) + '</div>'
+      + '<button class="n-del" onclick="deleteTask(' + i + ')">×</button>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── STOCKS WATCHLIST ──
+var watchlist = [];
+try { watchlist = JSON.parse(localStorage.getItem('stocks_watchlist_v1') || '[]'); } catch(e) { watchlist = []; }
+function addStock() {
+  var inp = document.getElementById('stock-input');
+  var sym = inp.value.trim().toUpperCase();
+  if (!sym || watchlist.includes(sym)) return;
+  watchlist.push(sym);
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  inp.value = '';
+  fetchStocks();
+}
+function deleteStock(sym) {
+  watchlist = watchlist.filter(function(s) { return s !== sym; });
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  fetchStocks();
+}
+function fetchStocks() {
+  var el = document.getElementById('stocks-list');
+  if (!watchlist.length) { el.innerHTML = '<div class="muted">Add stocks to track them here.</div>'; return; }
+  el.innerHTML = '<div class="muted">Loading prices...</div>';
+  Promise.all(watchlist.map(function(sym) {
+    return fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=1d', 'stk_' + sym, 5);
+  })).then(function(results) {
+    var html = '';
+    watchlist.forEach(function(sym, i) {
+      var data = results[i];
+      if (data && data.chart && data.chart.result) {
+        var meta = data.chart.result[0].meta;
+        var px = parseFloat(meta.regularMarketPrice);
+        var prev = parseFloat(meta.chartPreviousClose);
+        var diff = px - prev;
+        var pct = ((diff / prev) * 100).toFixed(2);
+        html += '<div class="row">'
+          + '<div class="rl"><div class="rl-t">' + sym + '</div><div class="rl-s">$' + px.toFixed(2) + '</div></div>'
+          + '<div style="text-align:right"><div style="color:' + (diff >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600">' + (diff >= 0 ? '+' : '') + pct + '%</div></div>'
+          + '<button class="n-del" onclick="deleteStock(\'' + sym + '\')">×</button>'
+          + '</div>';
+      } else {
+        html += '<div class="row"><div class="rl"><div class="rl-t">' + sym + '</div><div class="rl-s">Error</div></div></div>';
+      }
+    });
+    el.innerHTML = html || '<div class="muted">No data</div>';
+  });
+}
+
+// ── WEATHER FORECAST ──
+function loadForecast() {
+  fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto', 'wx_forecast', 240)
+    .then(function(data) {
+      if (!data || !data.daily) return;
+      var html = '';
+      var now = new Date();
+      for (var i = 0; i < 7; i++) {
+        var date = new Date(now);
+        date.setDate(date.getDate() + i);
+        var code = data.daily.weather_code[i];
+        var emoji = code === 0 ? '☀️' : code <= 3 ? '⛅' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : code <= 77 ? '❄️' : '⛈️';
+        var hi = Math.round(data.daily.temperature_2m_max[i]);
+        var lo = Math.round(data.daily.temperature_2m_min[i]);
+        var day = date.toLocaleDateString('en-US', {weekday:'short'});
+        html += '<div style="background:var(--glass2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center">'
+          + '<div style="font-size:14px;color:var(--t2);margin-bottom:6px">' + day + '</div>'
+          + '<div style="font-size:28px;margin:6px 0">' + emoji + '</div>'
+          + '<div style="font-size:13px;color:var(--t1)"><span style="color:var(--green)">' + hi + '°</span> / <span style="color:var(--t3)">' + lo + '°</span></div>'
+          + '</div>';
+      }
+      document.getElementById('forecast-list').innerHTML = html;
+    });
+}
+
+// ── QUICK LINKS ──
+var quickLinks = [];
+try { quickLinks = JSON.parse(localStorage.getItem('quick_links_v1') || '[]'); } catch(e) { quickLinks = []; }
+function addLink() {
+  var title = document.getElementById('link-title').value.trim();
+  var url = document.getElementById('link-url').value.trim();
+  if (!title || !url) return;
+  if (!url.match(/^https?:\/\//)) url = 'https://' + url;
+  quickLinks.push({title: title, url: url});
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  document.getElementById('link-title').value = '';
+  document.getElementById('link-url').value = '';
+  renderLinks();
+}
+function deleteLink(idx) {
+  quickLinks.splice(idx, 1);
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  renderLinks();
+}
+function renderLinks() {
+  var el = document.getElementById('links-list');
+  if (!quickLinks.length) { el.innerHTML = '<div class="muted">No links yet. Add your favorites!</div>'; return; }
+  var html = '';
+  quickLinks.forEach(function(l, i) {
+    html += '<a href="' + escHtml(l.url) + '" target="_blank" rel="noopener" class="row" style="border-radius:var(--r);margin-bottom:10px;flex-direction:column;gap:0">'
+      + '<div style="font-weight:600;color:var(--accent)">' + escHtml(l.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--t3);margin-top:4px">' + escHtml(l.url.replace(/^https?:\/\//,'')) + '</div>'
+      + '</a>'
+      + '<button class="btn btn-gh" style="width:100%;margin-bottom:10px;font-size:13px" onclick="deleteLink(' + i + ')">Delete</button>';
+  });
+  el.innerHTML = html;
+}
+
+renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
+
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
   try {
@@ -765,10 +995,13 @@ function renderFeed(items, id) {
       } catch(e) {}
     }
     var href = /^https?:\/\//i.test(item.link || '') ? item.link : '#';
-    html += '<a class="feed-item" href="' + escHtml(href) + '" target="_blank" rel="noopener">'
+    html += '<div class="feed-item" style="display:flex;gap:12px;align-items:stretch;padding:0!important;border:none!important">'
+      + '<a href="' + escHtml(href) + '" target="_blank" rel="noopener" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">'
       + '<div class="feed-t">' + escHtml(item.title || '') + '</div>'
-      + '<div class="feed-m"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
-      + '</a>';
+      + '<div class="feed-m" style="margin:10px 0 0"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
+      + '</a>'
+      + '<button class="n-del" onclick="saveBookmark(\'' + escHtml(item.title || '').replace(/'/g,"\\'") + '\',\'' + escHtml(href).replace(/'/g,"\\'") + '\',\'' + escHtml(item.source || 'News').replace(/'/g,"\\'") + '\')" style="border-left:1px solid var(--line);padding:0 12px;cursor:pointer;font-size:20px">📌</button>'
+      + '</div>';
   }
   el.innerHTML = html;
 }
