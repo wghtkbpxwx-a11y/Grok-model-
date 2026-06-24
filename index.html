@@ -89,6 +89,20 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wx-svg{display:inline-block;vertical-align:middle}
 .btn-voice svg{width:19px;height:19px;display:block;flex-shrink:0}
 
+/* EXTERNAL-LINK MODAL (keeps the dashboard alive on single-window browsers) */
+#ext-modal{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;flex-direction:column;opacity:0;pointer-events:none;transform:scale(1.02);transition:opacity .25s cubic-bezier(.34,.69,.66,1),transform .25s cubic-bezier(.34,.69,.66,1)}
+#ext-modal.open{opacity:1;pointer-events:auto;transform:none}
+.em-bar{display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 12px) 18px 12px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line)}
+.em-host{flex:1;min-width:0;font-size:15px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.em-open{font-size:14px;font-weight:500;color:var(--accent);padding:10px 14px;border-radius:100px;white-space:nowrap}
+.em-open:hover{background:var(--surface)}
+.em-close{font-size:15px;font-weight:600;color:var(--bg);background:var(--t1);padding:10px 20px;border-radius:100px;white-space:nowrap}
+.em-body{flex:1;position:relative;background:var(--bg2)}
+#em-frame{width:100%;height:100%;border:0;background:#fff}
+.em-fallback{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:30px;text-align:center;background:var(--bg2)}
+.em-fallback.show{display:flex}
+.em-fallback-txt{color:var(--t2);font-size:16px;max-width:320px}
+
 /* COMPONENTS */
 .sec-title{font-size:13px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--t3);margin:0 0 18px 4px;display:flex;align-items:center;gap:12px;opacity:.85}
 .cardgroup{background:var(--glass2);border-radius:var(--r);border:1px solid var(--line);overflow:hidden;margin-bottom:32px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow-sm);transition:all .3s cubic-bezier(.34,.69,.66,1)}
@@ -629,6 +643,22 @@ input[type="color"]:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(58
   <button class="dock-submenu-item" data-p="links">Links</button>
 </div>
 
+<!-- External-link modal: opens links in-place so the dashboard is never lost -->
+<div id="ext-modal" aria-hidden="true">
+  <div class="em-bar">
+    <span class="em-host" id="em-host"></span>
+    <a class="em-open" id="em-open" target="_blank" rel="noopener">Open externally ↗</a>
+    <button class="em-close" id="em-close" aria-label="Back to dashboard">Done</button>
+  </div>
+  <div class="em-body">
+    <iframe id="em-frame" title="External page" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+    <div class="em-fallback" id="em-fallback">
+      <div class="em-fallback-txt">This site can’t be shown inside the dashboard.</div>
+      <a class="btn btn-pri" id="em-fallback-open" target="_blank" rel="noopener">Open in new tab</a>
+    </div>
+  </div>
+</div>
+
 <div id="stocks-dropdown">
   <div class="stocks-dropdown-header">
     <input type="text" id="stocks-dropdown-input" placeholder="Add ticker (e.g., AAPL)" style="text-transform:uppercase">
@@ -657,6 +687,7 @@ var newsCategories = {};
 var calcCur = '0', calcPrev = '', calcOperator = '', calcReset = false;
 var notes = [];
 var rec = null, isRec = false;
+var inflightFetches = {}; // de-dupes concurrent identical fetchCached() calls
 
 // Initialize settings from localStorage
 try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch(e) {}
@@ -1052,7 +1083,7 @@ function fetchStocks() {
           + '<div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">$' + px.toFixed(2) + '</div></div>'
           + '</a>'
           + '<div class="stock-chg ' + chgClass + '">' + (diff >= 0 ? '+' : '') + pct + '%</div>'
-          + '<button class="stock-remove" onclick="deleteStock(\'' + sym + '\'); event.stopPropagation();">×</button>'
+          + '<button class="stock-remove" data-sym="' + escHtml(sym) + '">×</button>'
           + '</div>';
       } else {
         html += '<div class="stock-item"><div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">Error loading</div></div></div>';
@@ -1061,6 +1092,11 @@ function fetchStocks() {
     el.innerHTML = html || '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No data</div>';
   });
 }
+// Delegated remove handler (attached once; survives innerHTML updates of the list)
+document.getElementById('stocks-dropdown-list').addEventListener('click', function(e) {
+  var btn = e.target.closest('.stock-remove');
+  if (btn) { e.stopPropagation(); e.preventDefault(); deleteStock(btn.getAttribute('data-sym')); }
+});
 
 // ── WEATHER FORECAST ──
 function loadForecast() {
@@ -1130,7 +1166,8 @@ function fetchCached(url, key, ttlMin) {
       if (Date.now() - parsed.t < (ttlMin || 15) * 60000) return Promise.resolve(parsed.data);
     }
   } catch(e) {}
-  return fetch(url).then(function(r) {
+  if (inflightFetches[key]) return inflightFetches[key];
+  var p = fetch(url).then(function(r) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(data) {
@@ -1140,6 +1177,9 @@ function fetchCached(url, key, ttlMin) {
     console.warn('Fetch failed for ' + key + ':', e);
     return null;
   });
+  inflightFetches[key] = p;
+  p.then(function() { delete inflightFetches[key]; }, function() { delete inflightFetches[key]; });
+  return p;
 }
 
 // ── WEATHER + AUTO THEME ──
@@ -1179,6 +1219,49 @@ fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=
 
 // ── UTILITIES ──
 function saveLS(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
+
+// ── EXTERNAL-LINK MODAL ──
+// Opens external links inside a sandboxed overlay so a single tap never
+// destroys the dashboard (critical on Tesla's single-window browser).
+// The iframe sandbox omits allow-top-navigation, so framed sites can't
+// navigate the dashboard away. "Open externally" / fallback cover sites
+// that refuse to be embedded.
+function openExtModal(url) {
+  var modal = document.getElementById('ext-modal');
+  var frame = document.getElementById('em-frame');
+  var fb = document.getElementById('em-fallback');
+  var host = url;
+  try { host = new URL(url).hostname.replace(/^www\./, ''); } catch(e) {}
+  document.getElementById('em-host').textContent = host;
+  document.getElementById('em-open').href = url;
+  document.getElementById('em-fallback-open').href = url;
+  fb.classList.remove('show');
+  var loaded = false;
+  frame.onload = function() { loaded = true; };
+  frame.src = url;
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  clearTimeout(openExtModal._t);
+  openExtModal._t = setTimeout(function() { if (!loaded) fb.classList.add('show'); }, 3000);
+}
+function closeExtModal() {
+  var modal = document.getElementById('ext-modal');
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  document.getElementById('em-frame').src = 'about:blank';
+}
+document.getElementById('em-close').addEventListener('click', closeExtModal);
+document.addEventListener('click', function(e) {
+  var a = e.target.closest('a[href]');
+  if (!a) return;
+  var href = a.getAttribute('href');
+  if (!href || !/^https?:\/\//i.test(href)) return;
+  var external;
+  try { external = new URL(href, location.href).origin !== location.origin; } catch(_) { external = true; }
+  if (!external) return;
+  e.preventDefault();
+  openExtModal(href);
+});
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
 }
