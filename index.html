@@ -1257,6 +1257,7 @@ document.getElementById('em-close').addEventListener('click', closeExtModal);
 document.addEventListener('click', function(e) {
   var a = e.target.closest('a[href]');
   if (!a) return;
+  if (a.closest('#ext-modal')) return; // let the modal's own escape links open normally
   var href = a.getAttribute('href');
   if (!href || !/^https?:\/\//i.test(href)) return;
   var external;
