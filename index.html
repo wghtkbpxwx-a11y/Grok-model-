@@ -659,20 +659,7 @@ function updateClock() {
   var m = String(d.getMinutes()).padStart(2, '0');
   document.getElementById('s-time').textContent = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
   document.getElementById('s-date').textContent = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
-  if (settings.themeMode === 'auto') {
-    fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=is_day', 'wx_isday', 15)
-      .then(function(data) {
-        if (data && data.current) {
-          var isDay = data.current.is_day === 1;
-          var newTheme = isDay ? 'light' : 'dark';
-          if (settings.theme !== newTheme) {
-            settings.theme = newTheme;
-            saveSettings();
-            applyTheme();
-          }
-        }
-      });
-  }
+  if (settings.themeMode === 'auto') applyAutoTheme();
 }
 (function tickClock() {
   updateClock();
@@ -752,6 +739,25 @@ function applyTheme() {
   var m = document.querySelector('meta[name="theme-color"]');
   if (m) m.setAttribute('content', settings.theme === 'light' ? '#f2f2f7' : '#000000');
 }
+// Resolve the theme from day/night when in auto mode. Uses the weather API's
+// is_day flag, falling back to local hour (6am-6pm = light) if it's unavailable.
+function setAutoTheme(isDay) {
+  var newTheme = isDay ? 'light' : 'dark';
+  if (settings.theme !== newTheme) {
+    settings.theme = newTheme;
+    saveSettings();
+    applyTheme();
+  }
+}
+function applyAutoTheme() {
+  var hr = new Date().getHours();
+  setAutoTheme(hr >= 6 && hr < 18); // instant feedback from local time
+  try {
+    return fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=is_day', 'wx_isday', 15)
+      .then(function(data) { if (data && data.current) setAutoTheme(data.current.is_day === 1); })
+      .catch(function() {});
+  } catch (e) { return Promise.resolve(); }
+}
 function applyModules() {
   Object.keys(defaultSettings.modules).forEach(function(k) {
     var btn = document.querySelector('.dock-btn[data-p="' + k + '"]') || document.querySelector('.dock-submenu-item[data-p="' + k + '"]');
@@ -810,6 +816,7 @@ document.querySelectorAll('.theme-mode-btn').forEach(function(btn) {
       settings.themeMode = 'auto';
     }
     applyTheme(); syncThemeModeButtons(); saveSettings();
+    if (mode === 'auto') applyAutoTheme().then(syncThemeModeButtons);
   });
 });
 
@@ -1128,15 +1135,7 @@ fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-12
     document.querySelector('.w-temp').textContent = Math.round(data.current.temperature_2m) + '°C';
     document.querySelector('.w-icon').textContent = e;
 
-    if (settings.themeMode === 'auto') {
-      var isDay = data.current.is_day === 1;
-      var newTheme = isDay ? 'light' : 'dark';
-      if (settings.theme !== newTheme) {
-        settings.theme = newTheme;
-        saveSettings();
-        applyTheme();
-      }
-    }
+    if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
   }
 });
 
