@@ -1463,63 +1463,42 @@ function httpGet(url) {
 
   // Check if this is cached news or sports data (embedded in HTML)
   if (url.includes('rss2json.com')) {
-    // Extract the rss_url parameter to identify which feed is being requested
-    var match = url.match(/rss_url=([^&]*)/);
-    var decodedRssUrl = match ? decodeURIComponent(match[1]) : null;
+    if (DASHBOARD_CACHE) {
+      console.log('DASHBOARD_CACHE exists, checking for news/sports data...');
 
-    // Check news cache first
-    if (DASHBOARD_CACHE && DASHBOARD_CACHE.news && decodedRssUrl) {
-      if (decodedRssUrl in DASHBOARD_CACHE.news) {
-        var newsData = DASHBOARD_CACHE.news[decodedRssUrl];
-        if (newsData && newsData.items && newsData.items.length > 0) {
-          console.log('✓ Using embedded news cache from:', decodedRssUrl, '(' + newsData.items.length + ' items)');
-          return Promise.resolve(newsData);
-        }
-      }
-    }
-
-    // Check sports cache next
-    if (DASHBOARD_CACHE && DASHBOARD_CACHE.sports && decodedRssUrl) {
-      if (decodedRssUrl in DASHBOARD_CACHE.sports) {
-        var sportsData = DASHBOARD_CACHE.sports[decodedRssUrl];
-        if (sportsData && sportsData.items && sportsData.items.length > 0) {
-          console.log('✓ Using embedded sports cache from:', decodedRssUrl, '(' + sportsData.items.length + ' items)');
-          return Promise.resolve(sportsData);
-        }
-      }
-    }
-
-    // Fallback: if no specific source found but we have general news cache, use that
-    if (DASHBOARD_CACHE && DASHBOARD_CACHE.news) {
-      var newsKeys = Object.keys(DASHBOARD_CACHE.news);
-      if (newsKeys.length > 0) {
+      // Try to find any news source with items
+      if (DASHBOARD_CACHE.news) {
+        var newsKeys = Object.keys(DASHBOARD_CACHE.news);
+        console.log('Found ' + newsKeys.length + ' news sources in cache');
         for (var i = 0; i < newsKeys.length; i++) {
-          var source = newsKeys[i];
-          var newsData = DASHBOARD_CACHE.news[source];
+          var newsSource = newsKeys[i];
+          var newsData = DASHBOARD_CACHE.news[newsSource];
           if (newsData && newsData.items && newsData.items.length > 0) {
-            console.log('✓ Using embedded news cache from:', source, '(' + newsData.items.length + ' items)');
+            console.log('✓ Using cached news from ' + newsSource + ' (' + newsData.items.length + ' items)');
             return Promise.resolve(newsData);
           }
         }
       }
-    }
 
-    // Fallback: if no news cache, try sports
-    if (DASHBOARD_CACHE && DASHBOARD_CACHE.sports) {
-      var sportsKeys = Object.keys(DASHBOARD_CACHE.sports);
-      if (sportsKeys.length > 0) {
+      // If no news, try sports
+      if (DASHBOARD_CACHE.sports) {
+        var sportsKeys = Object.keys(DASHBOARD_CACHE.sports);
+        console.log('Found ' + sportsKeys.length + ' sports sources in cache');
         for (var j = 0; j < sportsKeys.length; j++) {
-          var sportSource = sportsKeys[j];
-          var sportsData = DASHBOARD_CACHE.sports[sportSource];
+          var sportsSource = sportsKeys[j];
+          var sportsData = DASHBOARD_CACHE.sports[sportsSource];
           if (sportsData && sportsData.items && sportsData.items.length > 0) {
-            console.log('✓ Using embedded sports cache from:', sportSource, '(' + sportsData.items.length + ' items)');
+            console.log('✓ Using cached sports from ' + sportsSource + ' (' + sportsData.items.length + ' items)');
             return Promise.resolve(sportsData);
           }
         }
       }
-    }
 
-    console.log('✗ No embedded cache found - trying direct API');
+      console.log('✗ Cache exists but has no data with items');
+    } else {
+      console.log('✗ DASHBOARD_CACHE not defined!');
+    }
+    console.log('Falling back to direct API call');
     return tryDirectRequest();
   }
 
