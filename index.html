@@ -1472,21 +1472,33 @@ function renderFeed(items, id) {
 }
 
 // ── FEED LOADER (shared for news + sports) ──
+// Now with diversity balancing: limits articles per source and interleaves them
 function loadFeeds(configs, targetId) {
   Promise.all(configs.map(function(c) { return fetchCached(c.url, c.key, 10); }))
     .then(function(results) {
-      var all = [];
+      var bySource = {};
+      // Organize articles by source and limit to 3 per source for diversity
       results.forEach(function(r, i) {
         if (!r || !r.items) return;
+        var source = configs[i].source;
+        bySource[source] = [];
         r.items.forEach(function(item) {
-          item.source = configs[i].source;
+          item.source = source;
           try {
             var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
             if (!isNaN(age) && age > 86400000) return;
           } catch(e) {}
-          if (item.link && item.title) all.push(item);
+          if (item.link && item.title && bySource[source].length < 3) bySource[source].push(item);
         });
       });
+      // Interleave articles from different sources for diversity
+      var all = [];
+      var maxArticles = Math.max.apply(null, Object.keys(bySource).map(function(s) { return bySource[s].length; }));
+      for (var round = 0; round < maxArticles; round++) {
+        Object.keys(bySource).forEach(function(source) {
+          if (bySource[source][round]) all.push(bySource[source][round]);
+        });
+      }
       all.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
       currentFeed = all;
       renderFeed(all, targetId);
