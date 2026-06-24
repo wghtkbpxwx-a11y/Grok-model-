@@ -43,17 +43,17 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* HEADER */
-#header{display:flex;justify-content:space-between;align-items:center;padding:14px 32px;height:80px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);box-shadow:none;transition:all .3s cubic-bezier(.34,.69,.66,1)}
-#s-left,#s-right{display:flex;align-items:center;gap:24px}
-.brand{display:flex;align-items:center;gap:8px;cursor:pointer}
-.tesla-logo{width:20px;height:22px;fill:var(--t1);flex-shrink:0}
-.tesla-word{font-size:17px;font-weight:700;letter-spacing:4px;color:var(--t1);line-height:1}
-#s-time{font-size:32px;font-weight:600;letter-spacing:-.4px;font-variant-numeric:tabular-nums}
-#s-date{font-size:13px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-#weather-widget{font-size:24px;font-weight:500;display:flex;align-items:center;gap:10px;cursor:pointer}
-.w-temp{color:var(--t1);font-size:18px;font-weight:600}.w-icon{font-size:28px}
-#stock-widget{display:flex;align-items:center;gap:6px;font-size:16px;font-weight:700;padding-right:16px;border-right:1px solid var(--line)}
-#stock-widget .stk-label{color:var(--t3);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+#header{display:flex;justify-content:space-between;align-items:center;padding:12px 32px;height:auto;min-height:60px;background:var(--glass);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--line);box-shadow:none;transition:all .3s cubic-bezier(.34,.69,.66,1)}
+#s-left,#s-right{display:flex;align-items:center;gap:16px}
+.brand{display:flex;align-items:center;gap:6px;cursor:pointer}
+.tesla-logo{width:18px;height:20px;fill:var(--t1);flex-shrink:0}
+.tesla-word{font-size:13px;font-weight:700;letter-spacing:2px;color:var(--t1);line-height:1}
+#s-time{font-size:24px;font-weight:600;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
+#s-date{font-size:11px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+#weather-widget{font-size:20px;font-weight:500;display:flex;align-items:center;gap:8px;cursor:pointer}
+.w-temp{color:var(--t1);font-size:16px;font-weight:600}.w-icon{font-size:24px}
+#stock-widget{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding-right:14px;border-right:1px solid var(--line)}
+#stock-widget .stk-label{color:var(--t3);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
 
 /* MAIN */
 #main{flex:1;padding:20px 32px 120px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
@@ -283,11 +283,11 @@ input[type="color"]:hover{border-color:var(--line2)}
 @media (max-width:760px){
   html,body{height:auto;overflow:visible}
   #main{overflow-y:auto;flex:none}
-  #header{padding:12px 16px;height:auto;flex-wrap:wrap;gap:8px 12px}
+  #header{padding:10px 16px;height:auto;gap:12px;min-height:56px}
   #s-left,#s-right{gap:12px}
-  #s-time{font-size:24px}#s-date{font-size:11px}
-  #stock-widget{font-size:14px;padding-right:10px}#stock-widget .stk-label{font-size:11px}
-  #weather-widget{font-size:20px}.w-icon{font-size:24px}
+  #s-time{font-size:20px}#s-date{font-size:10px}
+  #stock-widget{font-size:12px;padding-right:8px}#stock-widget .stk-label{font-size:10px}
+  #weather-widget{font-size:18px}.w-icon{font-size:20px}.w-temp{font-size:14px}
   #main{padding:12px 14px 100px}
   .split{grid-template-columns:1fr}
   .rl-t{font-size:16px}.appicon{width:44px;height:44px}.appicon svg{width:26px;height:26px}
