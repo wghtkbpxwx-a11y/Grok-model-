@@ -2,7 +2,7 @@
   "weather": {
     "latitude": 49.18432,
     "longitude": -122.82682,
-    "generationtime_ms": 0.08738040924072266,
+    "generationtime_ms": 0.09047985076904297,
     "utc_offset_seconds": 0,
     "timezone": "GMT",
     "timezone_abbreviation": "GMT",
@@ -15,10 +15,10 @@
       "is_day": ""
     },
     "current": {
-      "time": "2026-06-24T23:15",
+      "time": "2026-06-24T23:30",
       "interval": 900,
       "temperature_2m": 28.2,
-      "weather_code": 1,
+      "weather_code": 2,
       "is_day": 1
     }
   },
@@ -525,5 +525,5 @@
       ]
     }
   },
-  "updated": "2026-06-24T23:25:05.644Z"
+  "updated": "2026-06-24T23:37:10.739Z"
 }
