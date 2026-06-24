@@ -585,7 +585,7 @@ function resetSettings() {
   settings.accentColor = themePresets.default.accent;
   settings.dockOrder = null;
   saveDockOrder();
-  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
+  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder(); initDragAndDrop();
 }
 document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
   t.addEventListener('click', function() {
@@ -628,7 +628,6 @@ function applyDockOrder() {
       if (btns[p]) dock.appendChild(btns[p]);
       else if (p === 'sep' && seps.length > 0) dock.appendChild(seps.shift());
     });
-    initDragAndDrop();
   } catch(e) {}
 }
 function initDragAndDrop() {
@@ -668,7 +667,7 @@ function initDragAndDrop() {
   });
 }
 
-applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
+applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder(); initDragAndDrop();
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
