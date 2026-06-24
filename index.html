@@ -1005,7 +1005,18 @@ function applyDockOrder() {
     });
   } catch(e) {}
 }
+var dockDragListenersInitialized = false;
 function initDragAndDrop() {
+  // Skip if already initialized to prevent duplicate listeners
+  if (dockDragListenersInitialized) {
+    // Just update draggable state on any new buttons
+    document.querySelectorAll('.dock-btn, .dock-submenu-item').forEach(function(el) {
+      el.draggable = true;
+    });
+    return;
+  }
+  dockDragListenersInitialized = true;
+
   // Dock button drag handlers (reorder + drag out to More)
   document.querySelectorAll('.dock-btn').forEach(function(btn) {
     btn.addEventListener('dragstart', function(e) {
@@ -1416,8 +1427,10 @@ function loadWeatherForCoords() {
     if (data && data.current) {
       var tempC = Math.round(data.current.temperature_2m);
       var icon = weatherIcon(data.current.weather_code);
-      document.querySelector('.w-temp').textContent = tempC + '°C';
-      document.querySelector('.w-icon').innerHTML = icon;
+      var wTemp = document.querySelector('.w-temp');
+      var wIcon = document.querySelector('.w-icon');
+      if (wTemp) wTemp.textContent = tempC + '°C';
+      if (wIcon) wIcon.innerHTML = icon;
 
       var liveTemp = document.getElementById('live-temp');
       var liveIcon = document.getElementById('live-icon');
@@ -1547,7 +1560,7 @@ function renderFeed(items, id) {
     var timeStr = 'Recently';
     if (item.pubDate) {
       try {
-        var ms = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
+        var ms = Date.now() - new Date(item.pubDate).getTime();
         if (!isNaN(ms) && ms > 0) {
           var mins = Math.floor(ms / 60000);
           timeStr = mins < 60 ? mins + 'm ago' : Math.floor(mins / 60) + 'h ago';
@@ -1603,9 +1616,10 @@ function loadFeeds(configs, targetId) {
       });
       // Interleave articles from different sources for diversity
       var all = [];
-      var maxArticles = Math.max.apply(null, Object.keys(bySource).map(function(s) { return bySource[s].length; }));
+      var sources = Object.keys(bySource);
+      var maxArticles = sources.length > 0 ? Math.max.apply(null, sources.map(function(s) { return bySource[s].length; })) : 0;
       for (var round = 0; round < maxArticles; round++) {
-        Object.keys(bySource).forEach(function(source) {
+        sources.forEach(function(source) {
           if (bySource[source][round]) all.push(bySource[source][round]);
         });
       }
