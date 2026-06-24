@@ -505,6 +505,12 @@ loadFeeds([
     {name:'BC Lions', url:'https://site.api.espn.com/apis/site/v2/sports/football/cfl/scoreboard', type:'scoreboard'}
   ];
   var sfeed = document.getElementById('scores-feed');
+  // ESPN returns score as a string, number, or {value, displayValue} object — normalize it.
+  function scoreVal(c) {
+    if (!c || c.score == null) return '-';
+    if (typeof c.score === 'object') return c.score.displayValue != null ? c.score.displayValue : (c.score.value != null ? c.score.value : '-');
+    return c.score;
+  }
   Promise.all(teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); }))
     .then(function(results) {
       var html = '';
@@ -520,8 +526,8 @@ loadFeeds([
             if (game) {
               var hm = game.competitions[0].competitors[0], aw = game.competitions[0].competitors[1];
               html += '<div class="score-card"><div class="score-teams">'
-                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + aw.score + '</span></div>'
-                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + hm.score + '</span></div>'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
                 + '</div><div class="score-status">' + game.status.type.detail + '</div></div>';
             } else {
               html += '<div class="score-card" style="color:var(--t3)"><b>BC Lions</b>&nbsp;— No game today</div>';
@@ -531,8 +537,8 @@ loadFeeds([
             if (ev) {
               var hm = ev.competitions[0].competitors[0], aw = ev.competitions[0].competitors[1];
               html += '<div class="score-card"><div class="score-teams">'
-                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + (aw.score || '-') + '</span></div>'
-                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + (hm.score || '-') + '</span></div>'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
                 + '</div><div class="score-status">' + (ev.status ? ev.status.type.detail : '') + '</div></div>';
             } else {
               html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
