@@ -799,7 +799,8 @@ function goPanel(p) {
   if (submenuItem) submenuItem.classList.add('on');
   var panel = document.getElementById('p-' + p);
   if (panel) panel.classList.add('on');
-  document.getElementById('main').scrollTop = 0;
+  var main = document.getElementById('main');
+  if (main) main.scrollTop = 0;
   closeDockSubmenu();
 }
 function toggleDockSubmenu() {
@@ -1832,13 +1833,15 @@ var MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 var STOP_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg><span>Stop</span>';
 function toggleVoice() {
   var btn = document.getElementById('voice-btn');
+  var input = document.getElementById('cap-input');
+  if (!btn || !input) return;
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SR) { alert('Dictation not supported.'); return; }
   if (isRec) { rec.stop(); return; }
   rec = new SR();
   rec.continuous = true;
   rec.interimResults = true;
-  var base = document.getElementById('cap-input').value;
+  var base = input.value;
   rec.onresult = function(e) {
     var f = '', interim = '';
     for (var j = e.resultIndex; j < e.results.length; j++) {
@@ -1846,7 +1849,7 @@ function toggleVoice() {
       else interim += e.results[j][0].transcript;
     }
     base += f;
-    document.getElementById('cap-input').value = base + interim;
+    input.value = base + interim;
   };
   rec.onend = rec.onerror = function() { isRec = false; btn.innerHTML = MIC_SVG; btn.classList.remove('rec'); };
   rec.start();
@@ -1857,7 +1860,7 @@ function toggleVoice() {
 document.addEventListener('click', function(e) {
   var dropdown = document.getElementById('stocks-dropdown');
   var btn = document.querySelector('.dock-submenu-item[data-p="stocks"]');
-  if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+  if (dropdown && btn && !dropdown.contains(e.target) && !btn.contains(e.target)) {
     dropdown.classList.remove('open');
   }
 });
