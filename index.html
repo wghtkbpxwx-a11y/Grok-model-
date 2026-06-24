@@ -71,13 +71,12 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .dock-btn.drag-over{opacity:0.5;transform:scale(0.95)}
 .dock-sep{width:1px;height:24px;background:var(--line);margin:0 4px;opacity:0.6}
 
-/* DOCK SUBMENU */
-.dock-btn-group{position:relative}
-.dock-submenu-trigger::after{content:'▼';margin-left:4px;font-size:10px;transition:transform .25s cubic-bezier(.34,.69,.66,1)}
+/* DOCK SUBMENU (fixed + sibling of #dock so it escapes the dock's overflow clipping) */
+.dock-submenu-trigger::after{content:'▼';margin-left:4px;font-size:10px;display:inline-block;transition:transform .25s cubic-bezier(.34,.69,.66,1)}
 .dock-submenu-trigger.open::after{transform:rotate(180deg)}
-.dock-submenu{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) scale(0.95);opacity:0;pointer-events:none;margin-bottom:12px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);padding:8px 0;min-width:160px;z-index:250;transition:all .25s cubic-bezier(.34,.69,.66,1)}
-.dock-submenu.open{opacity:1;pointer-events:auto;transform:translateX(-50%) scale(1)}
-.dock-submenu-item{display:flex;align-items:center;padding:10px 16px;color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.34,.69,.66,1)}
+.dock-submenu{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(10px) scale(0.96);opacity:0;pointer-events:none;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:18px;border:1px solid var(--line);box-shadow:var(--shadow);padding:8px;min-width:200px;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:250;transition:opacity .25s cubic-bezier(.34,.69,.66,1),transform .25s cubic-bezier(.34,.69,.66,1)}
+.dock-submenu.open{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0) scale(1)}
+.dock-submenu-item{display:flex;align-items:center;width:100%;padding:12px 18px;border-radius:12px;color:var(--t2);font-size:16px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.34,.69,.66,1)}
 .dock-submenu-item:hover{background:var(--surface);color:var(--t1)}
 .dock-submenu-item.on{background:var(--surface2);color:var(--t1)}
 
@@ -600,23 +599,23 @@ input[type="color"]:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(58
 <nav id="dock">
   <button class="dock-btn on" data-p="live" draggable="true">Live</button>
   <button class="dock-btn" data-p="msg" draggable="true">Messages</button>
-  <div class="dock-btn-group">
-    <button class="dock-btn dock-submenu-trigger" id="dock-more-btn" aria-label="More menu" aria-expanded="false">More</button>
-    <div class="dock-submenu" id="dock-submenu">
-      <button class="dock-submenu-item" data-p="sports">Sports</button>
-      <button class="dock-submenu-item" data-p="apple">Apple</button>
-      <button class="dock-submenu-item" data-p="cap">Capture</button>
-      <button class="dock-submenu-item" data-p="stream">Streaming</button>
-      <button class="dock-submenu-item" data-p="learn">Learning</button>
-      <button class="dock-submenu-item" data-p="saved">Saved</button>
-      <button class="dock-submenu-item" data-p="tasks">Tasks</button>
-      <button class="dock-submenu-item" data-p="stocks">Stocks</button>
-      <button class="dock-submenu-item" data-p="weather">Weather</button>
-      <button class="dock-submenu-item" data-p="links">Links</button>
-    </div>
-  </div>
+  <button class="dock-btn dock-submenu-trigger" id="dock-more-btn" aria-label="More menu" aria-expanded="false">More</button>
   <button class="dock-btn" data-p="set" draggable="true" aria-label="Settings">⚙</button>
 </nav>
+
+<!-- Submenu lives outside #dock so it isn't clipped by the dock's overflow / transform -->
+<div class="dock-submenu" id="dock-submenu">
+  <button class="dock-submenu-item" data-p="sports">Sports</button>
+  <button class="dock-submenu-item" data-p="apple">Apple</button>
+  <button class="dock-submenu-item" data-p="cap">Capture</button>
+  <button class="dock-submenu-item" data-p="stream">Streaming</button>
+  <button class="dock-submenu-item" data-p="learn">Learning</button>
+  <button class="dock-submenu-item" data-p="saved">Saved</button>
+  <button class="dock-submenu-item" data-p="tasks">Tasks</button>
+  <button class="dock-submenu-item" data-p="stocks">Stocks</button>
+  <button class="dock-submenu-item" data-p="weather">Weather</button>
+  <button class="dock-submenu-item" data-p="links">Links</button>
+</div>
 
 <div id="stocks-dropdown">
   <div class="stocks-dropdown-header">
@@ -740,7 +739,7 @@ document.querySelectorAll('.dock-btn').forEach(function(btn) {
   });
 });
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.dock-btn-group')) {
+  if (!e.target.closest('#dock-submenu') && e.target.id !== 'dock-more-btn') {
     closeDockSubmenu();
   }
 });
