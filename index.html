@@ -62,7 +62,7 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* LIVE PANEL HERO LAYOUT */
 .live-hero{background:var(--glass2);border:1px solid var(--line);border-radius:var(--r);padding:28px 24px;margin-bottom:28px;display:flex;flex-direction:column;gap:16px}
-.live-hero-time{display:flex;align-items:flex-end;justify-content:space-between;gap:32px}
+.live-hero-time{display:flex;align-items:flex-end;gap:48px}
 .live-hero-clock{font-size:48px;font-weight:700;line-height:1;letter-spacing:-1px}
 .live-hero-weather{display:flex;align-items:center;gap:8px;cursor:pointer}
 .live-hero-temp{font-size:22px;font-weight:600}
@@ -1427,6 +1427,9 @@ fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-12
     // Render live stocks chips when weather loads
     setTimeout(renderLiveStocks, 100);
   }
+})
+.catch(function(e) {
+  console.log('Weather API error:', e);
 });
 
 // ── STOCK (XEQT) ──
