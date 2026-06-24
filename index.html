@@ -26,7 +26,7 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 /* HEADER */
 #header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;height:90px}
 #s-left,#s-right{display:flex;align-items:center;gap:20px}
-.tesla-logo{width:140px;height:32px;fill:var(--t1)}
+.tesla-logo{width:32px;height:38px;fill:var(--t1)}
 #s-time{font-size:36px;font-weight:500;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
 #s-date{font-size:18px;color:var(--t2);font-weight:500}
 #weather-widget{font-size:26px;font-weight:500;display:flex;align-items:center;gap:12px}
@@ -135,9 +135,9 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 
 <header id="header">
   <div id="s-left">
-    <!-- Authentic Tesla wordmark -->
-    <svg class="tesla-logo" viewBox="0 0 342 35" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0 .1a9.7 9.7 0 0 0 7 7h11l.5-.1v27.6h6.8V7a9.8 9.8 0 0 0 7-7H0zm36.95.1a9.7 9.7 0 0 0 7 7h11v5.4h-9.4v6.5h9.4v5.2H44v6.5h17.8V7h4.2a9.8 9.8 0 0 0 7-7H37zm58.54 7a9.7 9.7 0 0 0-7-7h-8.3v28.8a9.4 9.4 0 0 0 7.3 6.9h9V27.1h-2.2v-6.5h2.2V7zm17.13 0a9.7 9.7 0 0 0-7-7h-8.2v35.7h6.8V7h4.2a9.7 9.7 0 0 0 4.2-7zm8.7 0a9.7 9.7 0 0 0 7 7h3.8v21.6h6.8V7.1h3.9a9.8 9.8 0 0 0 7-7h-28.5zm57.23 0a9.7 9.7 0 0 0-7-7h-17.8v6.5h17.8v5.4h-9.4v6.5h9.4v5.2h-17.8v6.5h17.8a9.8 9.8 0 0 0 7.1-6.9V14a9.8 9.8 0 0 0-7.1-6.9h7.1z"/>
+    <!-- Tesla T shield logo -->
+    <svg class="tesla-logo" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50 16.7L0 0c0 16.4 10.8 29.5 26.5 33.6L50 120l23.5-86.4C89.2 29.5 100 16.4 100 0L50 16.7zM50 5.6l34 10.3c-2 5.5-6.3 10-11.6 12.5L50 97.4 27.6 28.4C22.3 25.9 18 21.4 16 15.9L50 5.6z"/>
     </svg>
     <div id="s-time">--:--</div>
     <div id="s-date">———</div>
@@ -172,7 +172,7 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
           <div class="cardgroup" style="margin-bottom:0">
             <a class="row" href="https://sleeper.com" target="_blank" style="min-height:64px;padding:14px 20px">
               <div class="appicon ic-sleeper" style="width:44px;height:44px;border-radius:12px">
-                <svg viewBox="0 0 24 24" fill="#13C4A3" style="width:24px;height:24px"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V7h2v5zm4 4h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>
+                <svg viewBox="0 0 24 24" fill="#13C4A3" style="width:24px;height:24px"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
               </div>
               <div class="rl"><div class="rl-t" style="font-size:17px">Sleeper</div></div>
               <span class="chev">›</span>
@@ -319,12 +319,12 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
     <div class="split">
       <div class="cardgroup">
         <a class="row" href="https://www.crave.ca" target="_blank">
-          <div class="appicon ic-crave"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7z"/></svg></div>
+          <div class="appicon ic-crave"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg></div>
           <div class="rl"><div class="rl-t">Crave</div><div class="rl-s">HBO & Movies</div></div>
           <span class="chev">›</span>
         </a>
         <a class="row" href="https://www.telustvplus.com" target="_blank">
-          <div class="appicon ic-telus"><svg viewBox="0 0 24 24" fill="#fff"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7z"/></svg></div>
+          <div class="appicon ic-telus"><svg viewBox="0 0 24 24" fill="#fff"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></div>
           <div class="rl"><div class="rl-t">Telus TV+</div><div class="rl-s">Live TV & On Demand</div></div>
           <span class="chev">›</span>
         </a>
