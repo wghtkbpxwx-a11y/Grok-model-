@@ -511,6 +511,12 @@ loadFeeds([
     if (typeof c.score === 'object') return c.score.displayValue != null ? c.score.displayValue : (c.score.value != null ? c.score.value : '-');
     return c.score;
   }
+  // True only if the given ISO date string falls on today's local calendar day.
+  function isToday(dateStr) {
+    if (!dateStr) return false;
+    var d = new Date(dateStr), now = new Date();
+    return !isNaN(d) && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  }
   Promise.all(teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); }))
     .then(function(results) {
       var html = '';
@@ -523,7 +529,7 @@ loadFeeds([
             if (data.events) data.events.some(function(ev) {
               if (ev.name.indexOf('Lions') !== -1) { game = ev; return true; }
             });
-            if (game) {
+            if (game && isToday(game.date)) {
               var hm = game.competitions[0].competitors[0], aw = game.competitions[0].competitors[1];
               html += '<div class="score-card"><div class="score-teams">'
                 + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
@@ -534,12 +540,15 @@ loadFeeds([
             }
           } else {
             var ev = data.team && data.team.nextEvent && data.team.nextEvent[0];
-            if (ev) {
+            var evDate = ev && (ev.date || (ev.competitions && ev.competitions[0] && ev.competitions[0].date));
+            if (ev && isToday(evDate)) {
               var hm = ev.competitions[0].competitors[0], aw = ev.competitions[0].competitors[1];
               html += '<div class="score-card"><div class="score-teams">'
                 + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
                 + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
                 + '</div><div class="score-status">' + (ev.status ? ev.status.type.detail : '') + '</div></div>';
+            } else if (ev) {
+              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— No game today</div>';
             } else {
               html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
             }
