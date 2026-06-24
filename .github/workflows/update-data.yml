@@ -21,6 +21,7 @@ jobs:
             const data = {
               weather: null,
               news: null,
+              sports: null,
               updated: new Date().toISOString()
             };
 
@@ -36,14 +37,14 @@ jobs:
 
             try {
               // Fetch news from multiple sources
-              const sources = [
+              const newsSources = [
                 'https://globalnews.ca/bc/feed/',
                 'https://www.cbc.ca/cmlink/rss-canada-britishcolumbia',
                 'https://www.bbc.com/news/rss.xml'
               ];
 
               const newsResults = {};
-              for (const source of sources) {
+              for (const source of newsSources) {
                 try {
                   const encodedUrl = encodeURIComponent(source);
                   const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodedUrl}`);
@@ -58,6 +59,32 @@ jobs:
               data.news = newsResults;
             } catch(e) {
               console.error('News fetch failed:', e.message);
+            }
+
+            try {
+              // Fetch sports from multiple sources (ESPN, Sportsnet, TSN)
+              const sportsSources = [
+                'https://www.espn.com/espn/rss/news',
+                'https://www.sportsnet.ca/feed/',
+                'https://www.tsn.ca/rss/feed'
+              ];
+
+              const sportsResults = {};
+              for (const source of sportsSources) {
+                try {
+                  const encodedUrl = encodeURIComponent(source);
+                  const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodedUrl}`);
+                  if (res.ok) {
+                    const json = await res.json();
+                    sportsResults[source] = json;
+                  }
+                } catch(e) {
+                  console.error(`Failed to fetch ${source}:`, e.message);
+                }
+              }
+              data.sports = sportsResults;
+            } catch(e) {
+              console.error('Sports fetch failed:', e.message);
             }
 
             // Save as JSON
