@@ -1414,50 +1414,8 @@ renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
   }
 })();
 
-// ── HTTP REQUEST HELPER (tries fetch, falls back to XHR) ──
+// ── HTTP REQUEST HELPER (tries cached data first, falls back to direct API) ──
 function httpGet(url) {
-  // First, check if this is cached weather/news data from GitHub workflow
-  if (url.includes('api.open-meteo.com')) {
-    return new Promise(function(resolve) {
-      fetch('dashboard-data.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.weather) {
-            resolve(data.weather);
-          } else {
-            throw new Error('No cached weather');
-          }
-        })
-        .catch(function() {
-          // Fallback to direct API if cache unavailable
-          return tryDirectRequest();
-        });
-    });
-  }
-
-  if (url.includes('rss2json.com')) {
-    return new Promise(function(resolve) {
-      fetch('dashboard-data.json')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.news) {
-            // Find matching source from cache
-            for (var source in data.news) {
-              if (url.includes(encodeURIComponent(source)) || data.news[source]) {
-                resolve(data.news[source]);
-                return;
-              }
-            }
-            throw new Error('No matching cached news');
-          }
-          throw new Error('No cached news');
-        })
-        .catch(function() {
-          return tryDirectRequest();
-        });
-    });
-  }
-
   function tryDirectRequest() {
     var timeout = new Promise(function(_, reject) {
       setTimeout(function() { reject(new Error('Request timeout after 15s')); }, 15000);
@@ -1487,6 +1445,43 @@ function httpGet(url) {
     }
 
     return Promise.race([request, timeout]);
+  }
+
+  // First, check if this is cached weather data from GitHub workflow
+  if (url.includes('api.open-meteo.com')) {
+    return fetch('dashboard-data.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.weather) {
+          console.log('Using cached weather data');
+          return data.weather;
+        }
+        throw new Error('No cached weather');
+      })
+      .catch(function(e) {
+        console.log('Cache unavailable, falling back to direct API:', e.message);
+        return tryDirectRequest();
+      });
+  }
+
+  // Check if this is cached news data from GitHub workflow
+  if (url.includes('rss2json.com')) {
+    return fetch('dashboard-data.json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.news && Object.keys(data.news).length > 0) {
+          console.log('Using cached news data');
+          // Return the first available news source
+          for (var source in data.news) {
+            if (data.news[source]) return data.news[source];
+          }
+        }
+        throw new Error('No cached news');
+      })
+      .catch(function(e) {
+        console.log('Cache unavailable, falling back to direct API:', e.message);
+        return tryDirectRequest();
+      });
   }
 
   return tryDirectRequest();
