@@ -1407,26 +1407,34 @@ renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 
 // ── HTTP REQUEST HELPER (tries fetch, falls back to XHR) ──
 function httpGet(url) {
+  var timeout = new Promise(function(_, reject) {
+    setTimeout(function() { reject(new Error('Request timeout after 8s')); }, 8000);
+  });
+
+  var request;
   if (typeof fetch !== 'undefined') {
-    return fetch(url).then(function(r) {
+    request = fetch(url).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     });
+  } else {
+    request = new Promise(function(resolve, reject) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url);
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try { resolve(JSON.parse(xhr.responseText)); }
+          catch(e) { reject(new Error('JSON parse error')); }
+        } else {
+          reject(new Error('HTTP ' + xhr.status));
+        }
+      };
+      xhr.onerror = function() { reject(new Error('Network error')); };
+      xhr.send();
+    });
   }
-  return new Promise(function(resolve, reject) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url);
-    xhr.onload = function() {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try { resolve(JSON.parse(xhr.responseText)); }
-        catch(e) { reject(new Error('JSON parse error')); }
-      } else {
-        reject(new Error('HTTP ' + xhr.status));
-      }
-    };
-    xhr.onerror = function() { reject(new Error('Network error')); };
-    xhr.send();
-  });
+
+  return Promise.race([request, timeout]);
 }
 
 // ── FETCH CACHED ──
@@ -1471,8 +1479,13 @@ function loadWeatherForCoords() {
   var wTemp = document.querySelector('.w-temp');
   if (wTemp) wTemp.textContent = '...';
 
+  var timeoutId = setTimeout(function() {
+    if (wTemp) wTemp.textContent = '—';
+  }, 9000);
+
   fetchCached(url, 'wx', 15)
   .then(function(data) {
+    clearTimeout(timeoutId);
     if (data && data.current) {
       var tempC = Math.round(data.current.temperature_2m);
       var icon = weatherIcon(data.current.weather_code);
@@ -1490,11 +1503,12 @@ function loadWeatherForCoords() {
       if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
       setTimeout(renderLiveStocks, 100);
     } else if (!data) {
-      if (wTemp) wTemp.textContent = '✗';
+      if (wTemp) wTemp.textContent = '—';
     }
   })
   .catch(function(e) {
-    if (wTemp) wTemp.textContent = '✗';
+    clearTimeout(timeoutId);
+    if (wTemp) wTemp.textContent = '—';
   });
 }
 
@@ -1600,7 +1614,7 @@ function createBookmarkSvg(filled) {
 function renderFeed(items, id) {
   var el = document.getElementById(id);
   if (!items || !items.length) {
-    el.innerHTML = '<div class="muted" style="text-align:center;padding:40px 20px"><div>No stories available</div><div style="font-size:11px;margin-top:8px;color:var(--t3)">Check console for API errors (press F12)</div></div>';
+    el.innerHTML = '<div class="muted" style="text-align:center;padding:40px 20px;background:rgba(100,100,100,0.1);border-radius:12px;margin:20px;line-height:1.6"><div style="font-size:14px;font-weight:500;margin-bottom:4px">Network unavailable</div><div style="font-size:11px;color:var(--t3)">External APIs cannot be accessed in the Tesla browser</div></div>';
     return;
   }
   var html = '';
