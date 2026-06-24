@@ -22,6 +22,13 @@
   --r: 24px;
   --f: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
 }
+html.light{
+  --bg:#f2f2f7; --bg2:#fff;
+  --surface:rgba(0,0,0,.04); --surface2:rgba(0,0,0,.08);
+  --glass:rgba(255,255,255,.78); --glass2:rgba(255,255,255,.9);
+  --line:rgba(0,0,0,.1); --line2:rgba(0,0,0,.16);
+  --t1:#1d1d1f; --t2:#6e6e73; --t3:#8e8e93;
+}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html{background:var(--bg)}
 body{font-family:var(--f);color:var(--t1);min-height:100vh;overflow:hidden;background:linear-gradient(180deg,var(--bg),var(--bg2));display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
@@ -144,6 +151,18 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 .score-teams{flex:1}
 .score-row{display:flex;justify-content:space-between;font-size:17px;font-weight:600;color:var(--t1);padding:3px 0}
 .score-status{font-size:13px;font-weight:600;color:var(--accent);text-align:right;width:110px;margin-left:16px}
+
+/* SETTINGS */
+.set-group{background:var(--glass2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:28px;max-width:580px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.set-row{display:flex;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line);gap:16px}
+.set-row:last-child{border-bottom:none}
+.set-label{flex:1;min-width:0}
+.set-t{font-size:19px;font-weight:600;color:var(--t1);letter-spacing:-.2px}
+.set-s{font-size:14px;color:var(--t3);margin-top:3px}
+.toggle{width:52px;height:32px;border-radius:100px;background:var(--surface2);position:relative;transition:background .25s;flex-shrink:0;border:none}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 2px 5px rgba(0,0,0,.25)}
+.toggle.on::after{transform:translateX(20px)}
 
 /* RESPONSIVE (phones / portrait) */
 @media (max-width:760px){
@@ -400,6 +419,45 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
     </div>
   </section>
 
+  <!-- SETTINGS PANEL -->
+  <section class="panel" id="p-set">
+    <div class="sec-title">Appearance</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Light Theme</div><div class="set-s">Switch between dark and light appearance</div></div>
+        <button class="toggle" data-set="theme" aria-label="Toggle light theme"></button>
+      </div>
+    </div>
+    <div class="sec-title">Modules</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Sports News</div><div class="set-s">Live sports headlines</div></div>
+        <button class="toggle" data-set="sports" aria-label="Toggle Sports module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Messages</div><div class="set-s">Messaging hub shortcuts</div></div>
+        <button class="toggle" data-set="msg" aria-label="Toggle Messages module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Apple</div><div class="set-s">Apple ecosystem shortcuts</div></div>
+        <button class="toggle" data-set="apple" aria-label="Toggle Apple module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Capture</div><div class="set-s">Quick notes & calculator</div></div>
+        <button class="toggle" data-set="cap" aria-label="Toggle Capture module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Streaming</div><div class="set-s">Theater mode shortcuts</div></div>
+        <button class="toggle" data-set="stream" aria-label="Toggle Streaming module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Learning</div><div class="set-s">Research & learning tools</div></div>
+        <button class="toggle" data-set="learn" aria-label="Toggle Learning module"></button>
+      </div>
+    </div>
+    <button class="btn btn-gh" onclick="resetSettings()">Reset to defaults</button>
+  </section>
+
 </main>
 
 <nav id="dock">
@@ -411,6 +469,8 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
   <div class="dock-sep"></div>
   <button class="dock-btn" data-p="stream">Streaming</button>
   <button class="dock-btn" data-p="learn">Learning</button>
+  <div class="dock-sep"></div>
+  <button class="dock-btn" data-p="set" aria-label="Settings">⚙</button>
 </nav>
 
 <script>
@@ -428,14 +488,64 @@ function updateClock() {
 })();
 
 // ── DOCK ──
+function goPanel(p) {
+  document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('on'); });
+  document.querySelectorAll('.panel').forEach(function(pn) { pn.classList.remove('on'); });
+  var btn = document.querySelector('.dock-btn[data-p="' + p + '"]');
+  if (btn) btn.classList.add('on');
+  var panel = document.getElementById('p-' + p);
+  if (panel) panel.classList.add('on');
+  document.getElementById('main').scrollTop = 0;
+}
 document.querySelectorAll('.dock-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('on'); });
-    document.querySelectorAll('.panel').forEach(function(p) { p.classList.remove('on'); });
-    btn.classList.add('on');
-    document.getElementById('p-' + btn.dataset.p).classList.add('on');
+  btn.addEventListener('click', function() { goPanel(btn.dataset.p); });
+});
+
+// ── SETTINGS (theme + module visibility, persisted) ──
+var SETTINGS_KEY = 'dash_settings_v1';
+var defaultSettings = {theme:'dark', modules:{sports:true, msg:true, apple:true, cap:true, stream:true, learn:true}};
+var settings;
+try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch(e) {}
+if (!settings || typeof settings !== 'object') settings = JSON.parse(JSON.stringify(defaultSettings));
+if (!settings.modules) settings.modules = JSON.parse(JSON.stringify(defaultSettings.modules));
+
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {} }
+function applyTheme() {
+  document.documentElement.classList.toggle('light', settings.theme === 'light');
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', settings.theme === 'light' ? '#f2f2f7' : '#000000');
+}
+function applyModules() {
+  Object.keys(defaultSettings.modules).forEach(function(k) {
+    var btn = document.querySelector('.dock-btn[data-p="' + k + '"]');
+    if (btn) btn.style.display = settings.modules[k] === false ? 'none' : '';
+  });
+  var active = document.querySelector('.panel.on');
+  if (active) {
+    var id = active.id.slice(2);
+    if (settings.modules[id] === false) goPanel('live');
+  }
+}
+function syncToggles() {
+  document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
+    var k = t.dataset.set;
+    var on = k === 'theme' ? settings.theme === 'light' : settings.modules[k] !== false;
+    t.classList.toggle('on', on);
+  });
+}
+function resetSettings() {
+  settings = JSON.parse(JSON.stringify(defaultSettings));
+  saveSettings(); applyTheme(); applyModules(); syncToggles();
+}
+document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
+  t.addEventListener('click', function() {
+    var k = t.dataset.set;
+    if (k === 'theme') { settings.theme = settings.theme === 'light' ? 'dark' : 'light'; applyTheme(); }
+    else { settings.modules[k] = settings.modules[k] === false; applyModules(); }
+    saveSettings(); syncToggles();
   });
 });
+applyTheme(); applyModules(); syncToggles();
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
