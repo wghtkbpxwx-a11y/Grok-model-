@@ -1480,24 +1480,37 @@ function loadFeeds(configs, targetId) {
 }
 
 // News split into Local (BC) / National (Canada) / World, switchable via sub-tabs.
-// Expanded with diverse sources across regions and outlets.
+// Significantly expanded with 20+ diverse outlets across regions and types.
 newsCategories = {
   local: [
     {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fbc%2Ffeed%2F', key:'n_loc_gbc', source:'Global BC'},
     {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-canada-britishcolumbia', key:'n_loc_cbc', source:'CBC BC'},
-    {url:RSS+'https%3A%2F%2Fwww.vancouvermagazine.com%2Ffeed%2F', key:'n_loc_vm', source:'Vancouver Mag'}
+    {url:RSS+'https%3A%2F%2Fwww.vancouvermagazine.com%2Ffeed%2F', key:'n_loc_vm', source:'Vancouver Mag'},
+    {url:RSS+'https%3A%2F%2Fwww.biv.com%2Ffeed%2F', key:'n_loc_biv', source:'BIV'}
   ],
   national: [
     {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-topstories', key:'n_nat_cbc', source:'CBC News'},
     {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Ffeed%2F', key:'n_nat_gn', source:'Global News'},
     {url:RSS+'https%3A%2F%2Fwww.ctv.ca%2Fctvnews%2Frss%2F', key:'n_nat_ctv', source:'CTV News'},
-    {url:RSS+'https%3A%2F%2Fwww.thestar.com%2Ffeeds%2F', key:'n_nat_ts', source:'Toronto Star'}
+    {url:RSS+'https%3A%2F%2Fwww.thestar.com%2Ffeeds%2F', key:'n_nat_ts', source:'Toronto Star'},
+    {url:RSS+'https%3A%2F%2Fwww.theglobeandmail.com%2Ffeeds%2Fnews%2F', key:'n_nat_gm', source:'Globe & Mail'},
+    {url:RSS+'https%3A%2F%2Fnationalpost.com%2Ffeed%2F', key:'n_nat_np', source:'National Post'},
+    {url:RSS+'https%3A%2F%2Fwww.macleans.ca%2Ffeed%2F', key:'n_nat_mac', source:'MacLeans'},
+    {url:RSS+'https%3A%2F%2Fwww.huffingtonpost.ca%2Ffeed%2F', key:'n_nat_huff', source:'HuffPost Canada'}
   ],
   world: [
     {url:RSS+'http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fworld%2Frss.xml', key:'n_wld_bbc', source:'BBC World'},
     {url:RSS+'https%3A%2F%2Fapnews.com%2Fapf-services%2Fapnewsapi%2Frss%2Fworld.rss', key:'n_wld_ap', source:'AP World'},
     {url:RSS+'https%3A%2F%2Fwww.reutersagency.com%2Frss%2Fworld-news%2F', key:'n_wld_reu', source:'Reuters World'},
-    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fworld%2Ffeed%2F', key:'n_wld_gn', source:'Global World'}
+    {url:RSS+'https%3A%2F%2Fwww.aljazeera.com%2Fxml%2Frss%2Fall.xml', key:'n_wld_aje', source:'Al Jazeera'},
+    {url:RSS+'https%3A%2F%2Fwww.theguardian.com%2Finternational%2Frss', key:'n_wld_grd', source:'Guardian'},
+    {url:RSS+'https%3A%2F%2Fwww.dw.com%2Fen%2Fxml%2Frss%2Fxml_en_all', key:'n_wld_dw', source:'DW'},
+    {url:RSS+'https%3A%2F%2Fwww.france24.com%2Fen%2Frss', key:'n_wld_f24', source:'France24'},
+    {url:RSS+'https%3A%2F%2Fwww.independent.co.uk%2Fen%2Frss', key:'n_wld_ind', source:'The Independent'},
+    {url:RSS+'https%3A%2F%2Ffeeds.bloomberg.com%2Fmarkets%2Fnews.rss', key:'n_wld_bb', source:'Bloomberg'},
+    {url:RSS+'https%3A%2F%2Ffeeds.cnbc.com%2Fid%2F100003114%2Fbasic%2Ffeed.rss', key:'n_wld_cnbc', source:'CNBC'},
+    {url:RSS+'https%3A%2F%2Ffeeds.washingtonpost.com%2Frss%2Fworld', key:'n_wld_wp', source:'Washington Post'},
+    {url:RSS+'https%3A%2F%2Fnyt.com%2Fsvc%2Fxml%2Frss%2Fnyt%2FWorld.xml', key:'n_wld_nyt', source:'New York Times'}
   ]
 };
 function showNews(cat) { loadFeeds(newsCategories[cat] || newsCategories.local, 'news-feed'); }
@@ -1517,7 +1530,17 @@ loadFeeds([
   {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sportsnet.ca%2Ffeed%2F', key:'s_snet', source:'Sportsnet'},
   {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', key:'s_tsn', source:'TSN'},
   {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.yahoo.com%2Fv2%2Fsports%2F', key:'s_yahoo', source:'Yahoo Sports'},
-  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Frss.slashsports.com%2Fcombined%2F', key:'s_slash', source:'Slash Sports'}
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Frss.slashsports.com%2Fcombined%2F', key:'s_slash', source:'Slash Sports'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbleacherreport.com%2Frss%2Ffeeds%2Fnow.xml', key:'s_br', source:'Bleacher Report'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nbcsports.com%2Frss%2Fxml%2Fnbcsports%2Fnbcsports.xml', key:'s_nbc', source:'NBC Sports'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.foxsports.com%2Frss', key:'s_fox', source:'Fox Sports'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.thescore.com%2Frss%2F', key:'s_score', source:'The Score'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fmlb.com%2Ffeed%2Frss.xml', key:'s_mlb', source:'MLB.com'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nba.com%2Frss%2Fnba_rss.xml', key:'s_nba', source:'NBA.com'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nhl.com%2Fnews%2Frss.xml', key:'s_nhl', source:'NHL.com'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cfl.ca%2Frss%2F', key:'s_cfl', source:'CFL.ca'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.nfl.com%2Frss', key:'s_nfl', source:'NFL.com'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.skysports.com%2Frss%2Fxml%2Fnews.xml', key:'s_sky', source:'Sky Sports'}
 ], 'sports-feed');
 
 // ── MY TEAMS TRACKER ──
