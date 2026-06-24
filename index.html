@@ -1406,7 +1406,7 @@ function fetchCached(url, key, ttlMin) {
     saveLS(key, {t: Date.now(), data: data});
     return data;
   }).catch(function(e) {
-    console.warn('Fetch failed for ' + key + ':', e);
+    console.error('Fetch failed for ' + key + ':', url, '|', e.message || e);
     return null;
   });
   inflightFetches[key] = p;
@@ -1423,8 +1423,10 @@ try {
 
 function loadWeatherForCoords() {
   var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day,weather_description';
+  console.log('Weather API call:', url);
   fetchCached(url, 'wx', 15)
   .then(function(data) {
+    console.log('Weather data received:', data);
     if (data && data.current) {
       var tempC = Math.round(data.current.temperature_2m);
       var icon = weatherIcon(data.current.weather_code);
@@ -1598,8 +1600,10 @@ function renderFeed(items, id) {
 // ── FEED LOADER (shared for news + sports) ──
 // Now with diversity balancing: limits articles per source and interleaves them
 function loadFeeds(configs, targetId) {
+  console.log('loadFeeds called for', targetId, 'with', configs.length, 'sources');
   Promise.all(configs.map(function(c) { return fetchCached(c.url, c.key, 10); }))
     .then(function(results) {
+      console.log('Feed results received:', results.map(function(r) { return r ? (r.items ? r.items.length + ' items' : 'no items') : 'null'; }));
       var bySource = {};
       // Organize articles by source and limit to 3 per source for diversity
       results.forEach(function(r, i) {
