@@ -1467,16 +1467,17 @@ try {
 
 function loadWeatherForCoords() {
   var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day,weather_description';
-  console.log('Weather API call:', url);
+
+  var wTemp = document.querySelector('.w-temp');
+  if (wTemp) wTemp.textContent = '...';
+
   fetchCached(url, 'wx', 15)
   .then(function(data) {
-    console.log('Weather data received:', data);
     if (data && data.current) {
       var tempC = Math.round(data.current.temperature_2m);
       var icon = weatherIcon(data.current.weather_code);
-      var wTemp = document.querySelector('.w-temp');
-      var wIcon = document.querySelector('.w-icon');
       if (wTemp) wTemp.textContent = tempC + '°C';
+      var wIcon = document.querySelector('.w-icon');
       if (wIcon) wIcon.innerHTML = icon;
 
       var liveTemp = document.getElementById('live-temp');
@@ -1488,10 +1489,12 @@ function loadWeatherForCoords() {
 
       if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
       setTimeout(renderLiveStocks, 100);
+    } else if (!data) {
+      if (wTemp) wTemp.textContent = '✗';
     }
   })
   .catch(function(e) {
-    console.log('Weather API error:', e);
+    if (wTemp) wTemp.textContent = '✗';
   });
 }
 
@@ -1644,10 +1647,13 @@ function renderFeed(items, id) {
 // ── FEED LOADER (shared for news + sports) ──
 // Now with diversity balancing: limits articles per source and interleaves them
 function loadFeeds(configs, targetId) {
-  console.log('loadFeeds called for', targetId, 'with', configs.length, 'sources');
+  var el = document.getElementById(targetId);
+  if (el) el.innerHTML = '<div class="muted" style="text-align:center;padding:40px 20px">Loading...</div>';
+
   Promise.all(configs.map(function(c) { return fetchCached(c.url, c.key, 10); }))
     .then(function(results) {
-      console.log('Feed results received:', results.map(function(r) { return r ? (r.items ? r.items.length + ' items' : 'no items') : 'null'; }));
+      var successCount = results.filter(function(r) { return r !== null; }).length;
+      console.log('Feed results: ' + successCount + '/' + results.length + ' sources loaded for ' + targetId);
       var bySource = {};
       // Organize articles by source and limit to 3 per source for diversity
       results.forEach(function(r, i) {
@@ -1677,6 +1683,15 @@ function loadFeeds(configs, targetId) {
       renderFeed(all, targetId);
     }).catch(function(err) {
       console.error('Feed load error:', err);
+      // Try to show any cached data even if expired
+      var el = document.getElementById(targetId);
+      if (el) {
+        var msg = '<div class="muted" style="text-align:center;padding:40px 20px;background:rgba(255,69,58,0.1);border-radius:12px;margin:20px">';
+        msg += '<div style="font-weight:600;margin-bottom:8px">Unable to load ' + targetId + '</div>';
+        msg += '<div style="font-size:12px;color:var(--t3)">Network error - check connectivity</div>';
+        msg += '</div>';
+        el.innerHTML = msg;
+      }
     });
 }
 
