@@ -1449,37 +1449,52 @@ function httpGet(url) {
 
   // First, check if this is cached weather data from GitHub workflow
   if (url.includes('api.open-meteo.com')) {
-    return fetch('dashboard-data.json')
-      .then(function(r) { return r.json(); })
+    var cacheUrl = location.origin + location.pathname.replace(/index\.html$/, '') + 'dashboard-data.json';
+    console.log('Loading weather from cache:', cacheUrl);
+    return fetch(cacheUrl)
+      .then(function(r) {
+        console.log('Cache response status:', r.status);
+        if (!r.ok) throw new Error('Cache HTTP ' + r.status);
+        return r.json();
+      })
       .then(function(data) {
-        if (data.weather) {
-          console.log('Using cached weather data');
+        if (data && data.weather) {
+          console.log('✓ Using cached weather:', data.weather.current.temperature_2m + '°C');
           return data.weather;
         }
-        throw new Error('No cached weather');
+        throw new Error('No weather in cache');
       })
       .catch(function(e) {
-        console.log('Cache unavailable, falling back to direct API:', e.message);
+        console.log('✗ Cache failed:', e.message, '- trying direct API');
         return tryDirectRequest();
       });
   }
 
   // Check if this is cached news data from GitHub workflow
   if (url.includes('rss2json.com')) {
-    return fetch('dashboard-data.json')
-      .then(function(r) { return r.json(); })
+    var cacheUrl = location.origin + location.pathname.replace(/index\.html$/, '') + 'dashboard-data.json';
+    console.log('Loading news from cache:', cacheUrl);
+    return fetch(cacheUrl)
+      .then(function(r) {
+        console.log('Cache response status:', r.status);
+        if (!r.ok) throw new Error('Cache HTTP ' + r.status);
+        return r.json();
+      })
       .then(function(data) {
-        if (data.news && Object.keys(data.news).length > 0) {
-          console.log('Using cached news data');
-          // Return the first available news source
+        if (data && data.news && Object.keys(data.news).length > 0) {
+          console.log('✓ Using cached news with', Object.keys(data.news).length, 'sources');
+          // Return the first available news source's data
           for (var source in data.news) {
-            if (data.news[source]) return data.news[source];
+            if (data.news[source] && data.news[source].items) {
+              console.log('  Returning source:', source);
+              return data.news[source];
+            }
           }
         }
-        throw new Error('No cached news');
+        throw new Error('No news in cache');
       })
       .catch(function(e) {
-        console.log('Cache unavailable, falling back to direct API:', e.message);
+        console.log('✗ Cache failed:', e.message, '- trying direct API');
         return tryDirectRequest();
       });
   }
