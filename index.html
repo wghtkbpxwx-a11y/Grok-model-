@@ -1010,19 +1010,21 @@ function applyDockOrder() {
   } catch(e) {}
 }
 function initDragAndDrop() {
+  // Dock button drag handlers (reorder + drag out to More)
   document.querySelectorAll('.dock-btn').forEach(function(btn) {
     btn.addEventListener('dragstart', function(e) {
       draggedBtn = btn;
       btn.style.opacity = '0.5';
       e.dataTransfer.setData('text/html', btn.innerHTML);
+      e.dataTransfer.setData('source', 'dock');
       e.dataTransfer.effectAllowed = 'move';
     });
     btn.addEventListener('dragend', function(e) {
-      document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
+      document.querySelectorAll('.dock-btn, .dock-submenu-item').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
       draggedBtn = null;
     });
     btn.addEventListener('dragover', function(e) {
-      if (draggedBtn && btn !== draggedBtn) {
+      if (draggedBtn && btn !== draggedBtn && btn.classList.contains('dock-btn')) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
         btn.classList.add('drag-over');
@@ -1030,10 +1032,12 @@ function initDragAndDrop() {
         var allBtns = Array.from(dock.querySelectorAll('.dock-btn'));
         var dragIdx = allBtns.indexOf(draggedBtn);
         var dropIdx = allBtns.indexOf(btn);
-        if (dragIdx < dropIdx) {
-          btn.parentNode.insertBefore(draggedBtn, btn.nextSibling);
-        } else {
-          btn.parentNode.insertBefore(draggedBtn, btn);
+        if (dragIdx >= 0 && dropIdx >= 0) {
+          if (dragIdx < dropIdx) {
+            btn.parentNode.insertBefore(draggedBtn, btn.nextSibling);
+          } else {
+            btn.parentNode.insertBefore(draggedBtn, btn);
+          }
         }
       }
     });
@@ -1045,6 +1049,93 @@ function initDragAndDrop() {
       saveDockOrder();
     });
   });
+
+  // Submenu item drag handlers (drag to dock)
+  document.querySelectorAll('.dock-submenu-item').forEach(function(item) {
+    item.draggable = true;
+    item.addEventListener('dragstart', function(e) {
+      draggedBtn = item;
+      item.style.opacity = '0.5';
+      e.dataTransfer.setData('text/html', item.innerHTML);
+      e.dataTransfer.setData('source', 'submenu');
+      e.dataTransfer.setData('panel', item.getAttribute('data-p'));
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    item.addEventListener('dragend', function(e) {
+      item.style.opacity = '';
+      draggedBtn = null;
+    });
+  });
+
+  // Dock drop zone for submenu items
+  var dock = document.getElementById('dock');
+  dock.addEventListener('dragover', function(e) {
+    if (draggedBtn && draggedBtn.classList.contains('dock-submenu-item')) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      dock.style.borderColor = 'var(--accent)';
+      dock.style.borderWidth = '2px';
+    }
+  });
+  dock.addEventListener('dragleave', function(e) {
+    dock.style.borderColor = '';
+    dock.style.borderWidth = '';
+  });
+  dock.addEventListener('drop', function(e) {
+    if (draggedBtn && draggedBtn.classList.contains('dock-submenu-item')) {
+      e.preventDefault();
+      var panelId = draggedBtn.getAttribute('data-p');
+      addToDock(panelId);
+      dock.style.borderColor = '';
+      dock.style.borderWidth = '';
+    }
+  });
+
+  // Submenu drop zone for dock items
+  var submenu = document.getElementById('dock-submenu');
+  submenu.addEventListener('dragover', function(e) {
+    if (draggedBtn && draggedBtn.classList.contains('dock-btn') && draggedBtn.getAttribute('data-p') !== 'live') {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      submenu.style.borderColor = 'var(--red)';
+      submenu.style.opacity = '0.8';
+    }
+  });
+  submenu.addEventListener('dragleave', function(e) {
+    submenu.style.borderColor = '';
+    submenu.style.opacity = '';
+  });
+  submenu.addEventListener('drop', function(e) {
+    if (draggedBtn && draggedBtn.classList.contains('dock-btn') && draggedBtn.getAttribute('data-p') !== 'live') {
+      e.preventDefault();
+      var panelId = draggedBtn.getAttribute('data-p');
+      removeFromDock(panelId);
+      submenu.style.borderColor = '';
+      submenu.style.opacity = '';
+    }
+  });
+}
+
+function addToDock(panelId) {
+  try {
+    var dockOrder = JSON.parse(localStorage.getItem('dock_order_v1') || '["live","msg"]');
+    if (!dockOrder.includes(panelId)) {
+      dockOrder.push(panelId);
+      localStorage.setItem('dock_order_v1', JSON.stringify(dockOrder));
+      applyDockOrder();
+      initDragAndDrop();
+    }
+  } catch(e) {}
+}
+
+function removeFromDock(panelId) {
+  try {
+    var dockOrder = JSON.parse(localStorage.getItem('dock_order_v1') || '["live","msg"]');
+    dockOrder = dockOrder.filter(function(p) { return p !== panelId; });
+    localStorage.setItem('dock_order_v1', JSON.stringify(dockOrder));
+    applyDockOrder();
+    initDragAndDrop();
+  } catch(e) {}
 }
 
 try {
