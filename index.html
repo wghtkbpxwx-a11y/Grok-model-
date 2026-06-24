@@ -755,6 +755,18 @@ function toggleStocksDropdown() {
     fetchStocks();
   }
 }
+
+// Stock input autocomplete
+document.getElementById('stocks-dropdown-input').addEventListener('input', function() {
+  showStockSuggestions(this.value);
+});
+document.getElementById('stocks-dropdown-input').addEventListener('blur', function() {
+  setTimeout(function() {
+    var listEl = document.querySelector('.stock-suggest-list');
+    if (listEl) listEl.style.display = 'none';
+  }, 200);
+});
+
 document.querySelectorAll('.dock-btn').forEach(function(btn) {
   if (!btn.dataset.p) return; // skip the "More" submenu trigger (handled separately)
   btn.addEventListener('click', function() {
@@ -1042,19 +1054,50 @@ function renderTasks() {
 }
 
 // ── STOCKS WATCHLIST ──
+// Common stocks/securities for autocomplete
+var commonStocks = ['AAPL','MSFT','GOOGL','GOOG','AMZN','TSLA','META','NVDA','NFLX','AMD','INTC','CRM','ADBE','CSCO','ASML','AVGO','AXP','BA','BKNG','COST','DLTR','EBAY','GILD','HD','HSIC','IBM','INFY','JPM','KO','LRCX','MA','MCHP','MU','NXPI','ORCL','PAYC','PEP','QCOM','SBUX','SCHW','SNAP','SNPS','SNOW','SQ','TEAM','TMDX','TNDM','TTD','UUUU','V','VZ','WDAY','XOM','XEQT.TO','VFV.TO','VSP.TO','XIC.TO','VCN.TO','BNS.TO','TD.TO','RY.TO','BMO.TO','BCE.TO','ENB.TO','CNQ.TO','TRP.TO','MG.TO','WFT.TO','WN.TO','BAM.A','AC.TO','POW.TO','SCR.TO','GRT.U','FLT.TO','DOL.TO','AQN.TO','GDMK.U','SRU.U'];
+
 // Seed with XEQT.TO on first run (no saved key yet); respect a deliberately-cleared list.
 try {
   var _wl = localStorage.getItem('stocks_watchlist_v1');
   watchlist = _wl ? JSON.parse(_wl) : ['XEQT.TO'];
 } catch(e) { watchlist = ['XEQT.TO']; }
-function addStock() {
-  var inp = document.getElementById('stocks-dropdown-input');
-  var sym = inp.value.trim().toUpperCase();
-  if (!sym || watchlist.includes(sym)) { inp.value = ''; return; }
-  if (!/^[A-Z]{1,5}(\.[A-Z]{2})?$/.test(sym)) { alert('Invalid ticker format'); inp.value = ''; return; }
-  watchlist.push(sym);
+
+function searchStocks(query) {
+  var q = query.toUpperCase().trim();
+  if (!q) return [];
+  return commonStocks.filter(function(s) { return s.indexOf(q) === 0; }).slice(0, 6);
+}
+
+function showStockSuggestions(query) {
+  var results = searchStocks(query);
+  var inputEl = document.getElementById('stocks-dropdown-input');
+  var containerEl = inputEl.parentElement;
+  var listEl = containerEl.querySelector('.stock-suggest-list');
+  if (!listEl) {
+    listEl = document.createElement('div');
+    listEl.className = 'stock-suggest-list';
+    listEl.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:var(--glass2);border:1px solid var(--line);border-top:none;border-radius:0 0 8px 8px;max-height:160px;overflow-y:auto;z-index:300;display:none';
+    containerEl.style.position = 'relative';
+    containerEl.appendChild(listEl);
+  }
+  if (!results.length) { listEl.style.display = 'none'; return; }
+  listEl.innerHTML = results.map(function(s) {
+    var q = query.toUpperCase().trim();
+    return '<div class="stock-suggest-item" onclick="addStock(\'' + s + '\')" style="padding:8px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--t1)" onmouseover="this.style.background=\'var(--surface2)\'" onmouseout="this.style.background=\'\'"><strong>' + s.substring(0, q.length) + '</strong>' + s.substring(q.length) + '</div>';
+  }).join('');
+  listEl.style.display = 'block';
+}
+
+function addStock(sym) {
+  var _sym = (sym || document.getElementById('stocks-dropdown-input').value).trim().toUpperCase();
+  var inputEl = document.getElementById('stocks-dropdown-input');
+  if (!_sym || watchlist.includes(_sym)) { inputEl.value = ''; return; }
+  watchlist.push(_sym);
   saveLS('stocks_watchlist_v1', watchlist);
-  inp.value = '';
+  inputEl.value = '';
+  var listEl = inputEl.parentElement.querySelector('.stock-suggest-list');
+  if (listEl) listEl.style.display = 'none';
   fetchStocks();
 }
 function deleteStock(sym) {
@@ -1352,17 +1395,23 @@ function loadFeeds(configs, targetId) {
 }
 
 // News split into Local (BC) / National (Canada) / World, switchable via sub-tabs.
+// Expanded with diverse sources across regions and outlets.
 newsCategories = {
   local: [
     {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fbc%2Ffeed%2F', key:'n_loc_gbc', source:'Global BC'},
-    {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-canada-britishcolumbia', key:'n_loc_cbc', source:'CBC BC'}
+    {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-canada-britishcolumbia', key:'n_loc_cbc', source:'CBC BC'},
+    {url:RSS+'https%3A%2F%2Fwww.vancouvermagazine.com%2Ffeed%2F', key:'n_loc_vm', source:'Vancouver Mag'}
   ],
   national: [
     {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-topstories', key:'n_nat_cbc', source:'CBC News'},
-    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Ffeed%2F', key:'n_nat_gn', source:'Global News'}
+    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Ffeed%2F', key:'n_nat_gn', source:'Global News'},
+    {url:RSS+'https%3A%2F%2Fwww.ctv.ca%2Fctvnews%2Frss%2F', key:'n_nat_ctv', source:'CTV News'},
+    {url:RSS+'https%3A%2F%2Fwww.thestar.com%2Ffeeds%2F', key:'n_nat_ts', source:'Toronto Star'}
   ],
   world: [
     {url:RSS+'http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fworld%2Frss.xml', key:'n_wld_bbc', source:'BBC World'},
+    {url:RSS+'https%3A%2F%2Fapnews.com%2Fapf-services%2Fapnewsapi%2Frss%2Fworld.rss', key:'n_wld_ap', source:'AP World'},
+    {url:RSS+'https%3A%2F%2Fwww.reutersagency.com%2Frss%2Fworld-news%2F', key:'n_wld_reu', source:'Reuters World'},
     {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fworld%2Ffeed%2F', key:'n_wld_gn', source:'Global World'}
   ]
 };
@@ -1381,7 +1430,9 @@ showNews('local');
 loadFeeds([
   {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.espn.com%2Fespn%2Frss%2Fnews', key:'s_espn', source:'ESPN'},
   {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sportsnet.ca%2Ffeed%2F', key:'s_snet', source:'Sportsnet'},
-  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', key:'s_tsn', source:'TSN'}
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', key:'s_tsn', source:'TSN'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.yahoo.com%2Fv2%2Fsports%2F', key:'s_yahoo', source:'Yahoo Sports'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Frss.slashsports.com%2Fcombined%2F', key:'s_slash', source:'Slash Sports'}
 ], 'sports-feed');
 
 // ── MY TEAMS TRACKER ──
