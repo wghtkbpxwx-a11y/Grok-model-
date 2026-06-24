@@ -57,9 +57,11 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 /* DOCK */
 #dock{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--glass);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-radius:100px;border:1px solid var(--line);box-shadow:0 15px 40px rgba(0,0,0,.25);z-index:200;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}
 #dock::-webkit-scrollbar{display:none}
-.dock-btn{display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:100px;color:var(--t2);font-size:16px;font-weight:600;transition:all .2s;white-space:nowrap}
+.dock-btn{display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:100px;color:var(--t2);font-size:16px;font-weight:600;transition:all .2s;white-space:nowrap;cursor:grab}
 .dock-btn.on{background:var(--t1);color:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.1)}
 .dock-btn:not(.on):active{background:var(--surface);transform:scale(.96)}
+.dock-btn:active{cursor:grabbing}
+.dock-btn.drag-over{opacity:0.5;transform:scale(0.95)}
 .dock-sep{width:1px;height:28px;background:var(--line2);margin:0 2px}
 
 /* COMPONENTS */
@@ -156,6 +158,7 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 .set-group{background:var(--glass2);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:28px;max-width:580px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 .set-row{display:flex;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line);gap:16px}
 .set-row:last-child{border-bottom:none}
+.set-row.col-dir{flex-direction:column;align-items:flex-start}
 .set-label{flex:1;min-width:0}
 .set-t{font-size:19px;font-weight:600;color:var(--t1);letter-spacing:-.2px}
 .set-s{font-size:14px;color:var(--t3);margin-top:3px}
@@ -163,6 +166,12 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 .toggle.on{background:var(--green)}
 .toggle::after{content:'';position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 2px 5px rgba(0,0,0,.25)}
 .toggle.on::after{transform:translateX(20px)}
+.theme-presets{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;width:100%}
+.theme-preset{padding:10px 12px;border:2px solid var(--line);border-radius:12px;text-align:center;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;background:var(--surface)}
+.theme-preset:hover{border-color:var(--accent);background:var(--surface2)}
+.theme-preset.on{border-color:var(--accent);background:var(--accent);color:var(--bg)}
+.color-picker-wrap{display:flex;align-items:center;gap:12px;width:100%}
+input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
 
 /* RESPONSIVE (phones / portrait) */
 @media (max-width:760px){
@@ -428,6 +437,26 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
         <button class="toggle" data-set="theme" aria-label="Toggle light theme"></button>
       </div>
     </div>
+    <div class="sec-title">Color & Presets</div>
+    <div class="set-group">
+      <div class="set-row col-dir">
+        <div class="set-label" style="width:100%"><div class="set-t">Theme Presets</div><div class="set-s">Choose a color theme</div></div>
+        <div class="theme-presets" id="theme-presets">
+          <button class="theme-preset on" data-theme-preset="default">Default<br><span style="font-size:10px">Blue</span></button>
+          <button class="theme-preset" data-theme-preset="cyberpunk">Cyberpunk<br><span style="font-size:10px">Neon</span></button>
+          <button class="theme-preset" data-theme-preset="sunset">Sunset<br><span style="font-size:10px">Warm</span></button>
+          <button class="theme-preset" data-theme-preset="forest">Forest<br><span style="font-size:10px">Green</span></button>
+          <button class="theme-preset" data-theme-preset="lavender">Lavender<br><span style="font-size:10px">Purple</span></button>
+        </div>
+      </div>
+      <div class="set-row col-dir">
+        <div class="set-label" style="width:100%"><div class="set-t">Custom Accent</div><div class="set-s">Pick any color for accents</div></div>
+        <div class="color-picker-wrap">
+          <input type="color" id="accent-picker" value="#3a82f6" aria-label="Custom accent color">
+          <span style="font-size:13px;color:var(--t3)">or choose a preset</span>
+        </div>
+      </div>
+    </div>
     <div class="sec-title">Modules</div>
     <div class="set-group">
       <div class="set-row">
@@ -461,16 +490,16 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 </main>
 
 <nav id="dock">
-  <button class="dock-btn on" data-p="live">Live</button>
-  <button class="dock-btn" data-p="sports">Sports</button>
-  <button class="dock-btn" data-p="msg">Messages</button>
-  <button class="dock-btn" data-p="apple">Apple</button>
-  <button class="dock-btn" data-p="cap">Capture</button>
+  <button class="dock-btn on" data-p="live" draggable="true">Live</button>
+  <button class="dock-btn" data-p="sports" draggable="true">Sports</button>
+  <button class="dock-btn" data-p="msg" draggable="true">Messages</button>
+  <button class="dock-btn" data-p="apple" draggable="true">Apple</button>
+  <button class="dock-btn" data-p="cap" draggable="true">Capture</button>
   <div class="dock-sep"></div>
-  <button class="dock-btn" data-p="stream">Streaming</button>
-  <button class="dock-btn" data-p="learn">Learning</button>
+  <button class="dock-btn" data-p="stream" draggable="true">Streaming</button>
+  <button class="dock-btn" data-p="learn" draggable="true">Learning</button>
   <div class="dock-sep"></div>
-  <button class="dock-btn" data-p="set" aria-label="Settings">⚙</button>
+  <button class="dock-btn" data-p="set" draggable="true" aria-label="Settings">⚙</button>
 </nav>
 
 <script>
@@ -533,9 +562,30 @@ function syncToggles() {
     t.classList.toggle('on', on);
   });
 }
+// ── THEME PRESETS ──
+var themePresets = {
+  default: {accent:'#3a82f6'},
+  cyberpunk: {accent:'#ff006e'},
+  sunset: {accent:'#ff6b35'},
+  forest: {accent:'#22c55e'},
+  lavender: {accent:'#a78bfa'}
+};
+function applyColors() {
+  var accent = settings.accentColor || themePresets.default.accent;
+  document.documentElement.style.setProperty('--accent', accent);
+  document.getElementById('accent-picker').value = accent;
+  var presets = document.querySelectorAll('.theme-preset');
+  presets.forEach(function(p) { p.classList.remove('on'); });
+  var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
+  if (preset) preset.classList.add('on');
+}
 function resetSettings() {
   settings = JSON.parse(JSON.stringify(defaultSettings));
-  saveSettings(); applyTheme(); applyModules(); syncToggles();
+  settings.themePreset = 'default';
+  settings.accentColor = themePresets.default.accent;
+  settings.dockOrder = null;
+  saveDockOrder();
+  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
 }
 document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
   t.addEventListener('click', function() {
@@ -545,7 +595,80 @@ document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
     saveSettings(); syncToggles();
   });
 });
-applyTheme(); applyModules(); syncToggles();
+document.querySelectorAll('.theme-preset').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var preset = btn.dataset.themePreset;
+    settings.themePreset = preset;
+    settings.accentColor = themePresets[preset].accent;
+    saveSettings(); applyColors();
+  });
+});
+document.getElementById('accent-picker').addEventListener('input', function(e) {
+  settings.accentColor = e.target.value;
+  settings.themePreset = 'custom';
+  saveSettings(); applyColors();
+});
+
+// ── DOCK REORDERING ──
+var draggedBtn = null;
+function saveDockOrder() {
+  var order = Array.from(document.querySelectorAll('.dock-btn[data-p]')).map(function(b) { return b.dataset.p; });
+  try { localStorage.setItem('dock_order_v1', JSON.stringify(order)); } catch(e) {}
+}
+function applyDockOrder() {
+  try {
+    var order = JSON.parse(localStorage.getItem('dock_order_v1'));
+    if (!order || !Array.isArray(order)) return;
+    var dock = document.getElementById('dock');
+    var btns = {};
+    dock.querySelectorAll('.dock-btn[data-p]').forEach(function(b) { btns[b.dataset.p] = b; });
+    var seps = Array.from(dock.children).filter(function(c) { return c.classList && c.classList.contains('dock-sep'); });
+    dock.innerHTML = '';
+    order.forEach(function(p) {
+      if (btns[p]) dock.appendChild(btns[p]);
+      else if (p === 'sep' && seps.length > 0) dock.appendChild(seps.shift());
+    });
+    initDragAndDrop();
+  } catch(e) {}
+}
+function initDragAndDrop() {
+  document.querySelectorAll('.dock-btn').forEach(function(btn) {
+    btn.addEventListener('dragstart', function(e) {
+      draggedBtn = btn;
+      btn.style.opacity = '0.5';
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    btn.addEventListener('dragend', function(e) {
+      document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
+      draggedBtn = null;
+    });
+    btn.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (draggedBtn && btn !== draggedBtn) {
+        btn.classList.add('drag-over');
+        var dock = document.getElementById('dock');
+        var allBtns = Array.from(dock.querySelectorAll('.dock-btn'));
+        var dragIdx = allBtns.indexOf(draggedBtn);
+        var dropIdx = allBtns.indexOf(btn);
+        if (dragIdx < dropIdx) {
+          btn.parentNode.insertBefore(draggedBtn, btn.nextSibling);
+        } else {
+          btn.parentNode.insertBefore(draggedBtn, btn);
+        }
+      }
+    });
+    btn.addEventListener('dragleave', function(e) {
+      btn.classList.remove('drag-over');
+    });
+    btn.addEventListener('drop', function(e) {
+      e.preventDefault();
+      saveDockOrder();
+    });
+  });
+}
+
+applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
