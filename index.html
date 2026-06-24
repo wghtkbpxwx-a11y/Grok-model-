@@ -1409,7 +1409,7 @@ renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 // ── HTTP REQUEST HELPER (tries fetch, falls back to XHR) ──
 function httpGet(url) {
   var timeout = new Promise(function(_, reject) {
-    setTimeout(function() { reject(new Error('Request timeout after 8s')); }, 8000);
+    setTimeout(function() { reject(new Error('Request timeout after 15s')); }, 15000);
   });
 
   var actualUrl = url;

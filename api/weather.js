@@ -1,15 +1,9 @@
 export default async function handler(req, res) {
-  // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { lat, lon } = req.query;
@@ -19,25 +13,44 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day,weather_description`;
+    // Try wttr.in API (more reliable, no API key needed)
+    const url = `https://wttr.in/${lat},${lon}?format=j1`;
 
     const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
+      headers: { 'User-Agent': 'Dashboard/1.0' }
     });
 
-    if (!response.ok) {
-      console.error('Open-Meteo error:', response.status, response.statusText);
-      return res.status(response.status).json({ error: 'Weather API error: ' + response.statusText });
+    if (response.ok) {
+      const data = await response.json();
+      res.setHeader('Cache-Control', 'public, max-age=600');
+
+      // Transform to Open-Meteo format for compatibility
+      const current = data.current_condition[0];
+      return res.status(200).json({
+        current: {
+          temperature_2m: parseFloat(current.temp_C),
+          weather_code: parseInt(current.weatherCode),
+          weather_description: current.weatherDesc[0].value,
+          is_day: current.is_day ? 1 : 0
+        }
+      });
     }
 
-    const data = await response.json();
-    res.setHeader('Cache-Control', 'public, max-age=600'); // Cache for 10 minutes
-    return res.status(200).json(data);
+    // Fallback to Open-Meteo
+    const fallbackUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day,weather_description`;
+    const fallback = await fetch(fallbackUrl);
+
+    if (fallback.ok) {
+      const data = await fallback.json();
+      res.setHeader('Cache-Control', 'public, max-age=600');
+      return res.status(200).json(data);
+    }
+
+    return res.status(500).json({ error: 'Weather APIs unavailable' });
   } catch (error) {
-    console.error('Weather proxy error:', error.message);
-    return res.status(500).json({ error: 'Failed to fetch weather data: ' + error.message });
+    console.error('Weather error:', error.message);
+    return res.status(500).json({ error: 'Weather service error' });
   }
 }
+
 
