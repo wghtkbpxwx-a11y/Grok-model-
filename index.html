@@ -1323,7 +1323,8 @@ document.getElementById('stocks-dropdown-list').addEventListener('click', functi
 
 // ── WEATHER FORECAST ──
 function loadForecast() {
-  fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto', 'wx_forecast', 240)
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto';
+  fetchCached(url, 'wx_forecast', 240)
     .then(function(data) {
       if (!data || !data.daily) return;
       var html = '';
@@ -1405,32 +1406,51 @@ function fetchCached(url, key, ttlMin) {
   return p;
 }
 
-// ── WEATHER + AUTO THEME ──
-fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code,is_day,weather_description', 'wx', 15)
-.then(function(data) {
-  if (data && data.current) {
-    var tempC = Math.round(data.current.temperature_2m);
-    var icon = weatherIcon(data.current.weather_code);
-    document.querySelector('.w-temp').textContent = tempC + '°C';
-    document.querySelector('.w-icon').innerHTML = icon;
+// ── GEOLOCATION ──
+var geoCoords = { lat: 49.19, lon: -122.85 }; // Default: Vancouver
+try {
+  var cached = localStorage.getItem('geo_coords_v1');
+  if (cached) { geoCoords = JSON.parse(cached); }
+} catch(e) {}
 
-    // Update hero section
-    var liveTemp = document.getElementById('live-temp');
-    var liveIcon = document.getElementById('live-icon');
-    var liveDesc = document.getElementById('live-weather-desc');
-    if (liveTemp) liveTemp.textContent = tempC + '°C';
-    if (liveIcon) liveIcon.innerHTML = icon;
-    if (liveDesc && data.current.weather_description) liveDesc.textContent = data.current.weather_description;
+function loadWeatherForCoords() {
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day,weather_description';
+  fetchCached(url, 'wx', 15)
+  .then(function(data) {
+    if (data && data.current) {
+      var tempC = Math.round(data.current.temperature_2m);
+      var icon = weatherIcon(data.current.weather_code);
+      document.querySelector('.w-temp').textContent = tempC + '°C';
+      document.querySelector('.w-icon').innerHTML = icon;
 
-    if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
+      var liveTemp = document.getElementById('live-temp');
+      var liveIcon = document.getElementById('live-icon');
+      var liveDesc = document.getElementById('live-weather-desc');
+      if (liveTemp) liveTemp.textContent = tempC + '°C';
+      if (liveIcon) liveIcon.innerHTML = icon;
+      if (liveDesc && data.current.weather_description) liveDesc.textContent = data.current.weather_description;
 
-    // Render live stocks chips when weather loads
-    setTimeout(renderLiveStocks, 100);
-  }
-})
-.catch(function(e) {
-  console.log('Weather API error:', e);
-});
+      if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
+      setTimeout(renderLiveStocks, 100);
+    }
+  })
+  .catch(function(e) {
+    console.log('Weather API error:', e);
+  });
+}
+
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    geoCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+    try { localStorage.setItem('geo_coords_v1', JSON.stringify(geoCoords)); } catch(e) {}
+    loadWeatherForCoords();
+  }, function(err) {
+    console.log('Geolocation denied, using default (Vancouver)');
+    loadWeatherForCoords();
+  });
+} else {
+  loadWeatherForCoords();
+}
 
 // ── STOCK (XEQT) ──
 fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=1d&range=1d', 'stk_xeqt', 5)
