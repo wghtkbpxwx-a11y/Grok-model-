@@ -731,6 +731,7 @@ var watchlist = [];
 var quickLinks = [];
 var currentFeed = [];
 var RSS = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var API_BASE = window.location.origin.includes('vercel') ? window.location.origin : null; // Use local proxy if deployed on Vercel
 var newsCategories = {};
 var calcCur = '0', calcPrev = '', calcOperator = '', calcReset = false;
 var notes = [];
@@ -1411,16 +1412,29 @@ function httpGet(url) {
     setTimeout(function() { reject(new Error('Request timeout after 8s')); }, 8000);
   });
 
+  var actualUrl = url;
+  // If using API proxy (Vercel deployment) and URL is an external API, proxy through backend
+  if (API_BASE) {
+    if (url.includes('api.open-meteo.com')) {
+      var match = url.match(/latitude=([^&]+)&longitude=([^&]+)/);
+      if (match) {
+        actualUrl = API_BASE + '/api/weather?lat=' + match[1] + '&lon=' + match[2];
+      }
+    } else if (url.includes('api.rss2json.com') || url.includes('rss2json')) {
+      actualUrl = API_BASE + '/api/feeds?url=' + encodeURIComponent(url);
+    }
+  }
+
   var request;
   if (typeof fetch !== 'undefined') {
-    request = fetch(url).then(function(r) {
+    request = fetch(actualUrl).then(function(r) {
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return r.json();
     });
   } else {
     request = new Promise(function(resolve, reject) {
       var xhr = new XMLHttpRequest();
-      xhr.open('GET', url);
+      xhr.open('GET', actualUrl);
       xhr.onload = function() {
         if (xhr.status >= 200 && xhr.status < 300) {
           try { resolve(JSON.parse(xhr.responseText)); }
