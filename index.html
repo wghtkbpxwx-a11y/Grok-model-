@@ -142,7 +142,8 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .ic-crave{background:#1a1a2e}.ic-telus{background:#4b286d}.ic-appletv{background:#000}
 .ic-sleeper{background:#2A2C38}.ic-yahoo{background:#400090}
 .ic-nlm{background:#1c1c1e}.ic-oe{background:linear-gradient(150deg,#F0603A,#E0451C)}
-.ic-nlm svg{width:36px;height:36px}.ic-oe svg{width:44px;height:44px}
+.ic-claude{background:linear-gradient(135deg,#1a1a1a,#333333)}.ic-gemini{background:linear-gradient(135deg,#4285F4,#1F2937)}.ic-perplexity{background:linear-gradient(135deg,#000,#1a1a1a)}
+.ic-nlm svg{width:36px;height:36px}.ic-oe svg{width:44px;height:44px}.ic-claude svg{width:32px;height:32px}.ic-gemini svg{width:32px;height:32px}.ic-perplexity svg{width:32px;height:32px}
 
 .rl{flex:1;min-width:0}
 .rl-t{font-size:18px;font-weight:600;color:var(--t1);letter-spacing:-.2px;line-height:1.2}
@@ -532,18 +533,33 @@ input[type="color"]:hover{border-color:var(--line2)}
     </div>
   </section>
 
-  <!-- LEARNING PANEL -->
+  <!-- AI & LEARNING PANEL -->
   <section class="panel" id="p-learn">
-    <div class="sec-title">Learning</div>
+    <div class="sec-title">AI & Research Tools</div>
     <div class="split">
+      <div class="cardgroup">
+        <a class="row" href="https://claude.ai" target="_blank" rel="noopener">
+          <div class="appicon ic-claude"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M6 12h12"/></svg></div>
+          <div class="rl"><div class="rl-t">Claude</div><div class="rl-s">AI assistant by Anthropic</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://gemini.google.com" target="_blank" rel="noopener">
+          <div class="appicon ic-gemini"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+          <div class="rl"><div class="rl-t">Gemini</div><div class="rl-s">AI by Google</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://www.perplexity.ai" target="_blank" rel="noopener">
+          <div class="appicon ic-perplexity"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11z"/></svg></div>
+          <div class="rl"><div class="rl-t">Perplexity</div><div class="rl-s">AI research engine</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
       <div class="cardgroup">
         <a class="row" href="https://notebooklm.google.com" target="_blank" rel="noopener">
           <div class="appicon ic-nlm"><svg viewBox="0 1.14 174.56 127.99"><path fill="#fff" d="M87.27,1.14C39.07,1.14,0,39.88,0,87.69v41.44h16.09v-4.13c0-19.39,15.84-35.11,35.39-35.11s35.39,15.72,35.39,35.11v4.13h16.09v-4.13c0-28.2-23.05-51.05-51.48-51.05-11.07,0-21.32,3.46-29.72,9.37,8.79-17.32,26.88-29.21,47.77-29.21,29.51,0,53.44,23.74,53.44,53v22.02h16.09v-22.02c0-38.08-31.13-68.96-69.53-68.96-17.27,0-33.06,6.24-45.22,16.58,11.94-22.39,35.65-37.64,62.97-37.64,39.32,0,71.19,31.61,71.19,70.6v41.44h16.09v-41.44C174.55,39.88,135.48,1.14,87.27,1.14Z"/></svg></div>
           <div class="rl"><div class="rl-t">NotebookLM</div><div class="rl-s">AI research notebook</div></div>
           <span class="chev">›</span>
         </a>
-      </div>
-      <div class="cardgroup">
         <a class="row" href="https://www.openevidence.com" target="_blank" rel="noopener">
           <div class="appicon ic-oe"><svg viewBox="0 0 56 56"><text x="28" y="38" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="30" font-weight="700" fill="#fff">&#338;</text></svg></div>
           <div class="rl"><div class="rl-t">OpenEvidence</div><div class="rl-s">Medical AI search</div></div>
