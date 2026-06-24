@@ -146,6 +146,9 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 
 /* RESPONSIVE (phones / portrait) */
 @media (max-width:760px){
+  /* let the whole document scroll naturally instead of locking to an inner pane */
+  html,body{height:auto;overflow:visible}
+  #main{overflow:visible;flex:none}
   #header{padding:14px 18px;height:auto;flex-wrap:wrap;gap:8px 14px}
   #s-left,#s-right{gap:12px}
   #s-time{font-size:26px}#s-date{font-size:14px}
