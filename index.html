@@ -1129,7 +1129,7 @@ function addToDock(panelId) {
     var dockOrder = JSON.parse(localStorage.getItem('dock_order_v1') || '["live","msg"]');
     if (!dockOrder.includes(panelId)) {
       dockOrder.push(panelId);
-      localStorage.setItem('dock_order_v1', JSON.stringify(dockOrder));
+      saveLS('dock_order_v1', dockOrder);
       applyDockOrder();
       initDragAndDrop();
     }
@@ -1140,7 +1140,7 @@ function removeFromDock(panelId) {
   try {
     var dockOrder = JSON.parse(localStorage.getItem('dock_order_v1') || '["live","msg"]');
     dockOrder = dockOrder.filter(function(p) { return p !== panelId; });
-    localStorage.setItem('dock_order_v1', JSON.stringify(dockOrder));
+    saveLS('dock_order_v1', dockOrder);
     applyDockOrder();
     initDragAndDrop();
   } catch(e) {}
@@ -1452,7 +1452,7 @@ function loadWeatherForCoords() {
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(function(pos) {
     geoCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-    try { localStorage.setItem('geo_coords_v1', JSON.stringify(geoCoords)); } catch(e) {}
+    saveLS('geo_coords_v1', geoCoords);
     loadWeatherForCoords();
   }, function(err) {
     console.log('Geolocation denied, using default (Vancouver)');
