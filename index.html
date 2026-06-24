@@ -12,9 +12,9 @@
   --glass: rgba(30,30,30,0.7); --glass2: rgba(40,40,40,0.8);
   --line: rgba(255,255,255,0.1); --line2: rgba(255,255,255,0.18);
   --t1: #fff; --t2: #a1a1a6; --t3: #6e6e73;
-  --accent: #3a82f6; --accent-bg: rgba(58,130,246,0.15);
+  --accent: #3a82f6;
   --red: #ff453a; --red-bg: rgba(255,69,58,0.15); --green: #32d74b;
-  --r: 24px; --rs: 16px;
+  --r: 24px;
   --f: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -352,17 +352,18 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 </nav>
 
 <script>
-// ── CLOCK ──
+// ── CLOCK (syncs to minute boundary) ──
 function updateClock() {
   var d = new Date();
   var h = d.getHours() % 12 || 12;
   var m = String(d.getMinutes()).padStart(2, '0');
-  var ap = d.getHours() >= 12 ? 'PM' : 'AM';
-  document.getElementById('s-time').textContent = h + ':' + m + ' ' + ap;
+  document.getElementById('s-time').textContent = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
   document.getElementById('s-date').textContent = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
 }
-setInterval(updateClock, 10000);
-updateClock();
+(function tickClock() {
+  updateClock();
+  setTimeout(tickClock, (60 - new Date().getSeconds()) * 1000 + 50);
+})();
 
 // ── DOCK ──
 document.querySelectorAll('.dock-btn').forEach(function(btn) {
@@ -376,12 +377,11 @@ document.querySelectorAll('.dock-btn').forEach(function(btn) {
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
-  ttlMin = ttlMin || 15;
   try {
     var cached = localStorage.getItem(key);
     if (cached) {
       var parsed = JSON.parse(cached);
-      if (Date.now() - parsed.t < ttlMin * 60000) return Promise.resolve(parsed.data);
+      if (Date.now() - parsed.t < (ttlMin || 15) * 60000) return Promise.resolve(parsed.data);
     }
   } catch(e) {}
   return fetch(url).then(function(r) {
@@ -400,10 +400,9 @@ function fetchCached(url, key, ttlMin) {
 fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code', 'wx', 15)
 .then(function(data) {
   if (data && data.current) {
-    var t = Math.round(data.current.temperature_2m);
     var c = data.current.weather_code;
     var e = c === 0 ? '☀️' : c <= 3 ? '⛅' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : '⛈️';
-    document.querySelector('.w-temp').textContent = t + '°C';
+    document.querySelector('.w-temp').textContent = Math.round(data.current.temperature_2m) + '°C';
     document.querySelector('.w-icon').textContent = e;
   }
 });
@@ -413,19 +412,14 @@ fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=
 .then(function(data) {
   if (data && data.chart && data.chart.result) {
     var meta = data.chart.result[0].meta;
-    var px = meta.regularMarketPrice.toFixed(2);
-    var prev = meta.chartPreviousClose;
-    var diff = (px - prev).toFixed(2);
+    var px = parseFloat(meta.regularMarketPrice);
+    var prev = parseFloat(meta.chartPreviousClose);
+    var diff = px - prev;
     var pct = ((diff / prev) * 100).toFixed(2);
-    document.getElementById('stk-px').textContent = '$' + px;
+    document.getElementById('stk-px').textContent = '$' + px.toFixed(2);
     var chgEl = document.getElementById('stk-chg');
-    if (diff >= 0) {
-      chgEl.textContent = '+' + diff + ' (+' + pct + '%)';
-      chgEl.style.color = 'var(--green)';
-    } else {
-      chgEl.textContent = diff + ' (' + pct + '%)';
-      chgEl.style.color = 'var(--red)';
-    }
+    chgEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)';
+    chgEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
   } else {
     document.getElementById('stk-px').textContent = '$44.94';
     document.getElementById('stk-chg').textContent = '(cached)';
@@ -437,7 +431,9 @@ fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=
   document.getElementById('stk-chg').style.color = 'var(--t3)';
 });
 
-// ── NEWS FEED RENDERER ──
+// ── FEED RENDERER ──
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
 function renderFeed(items, id) {
   var el = document.getElementById(id);
   if (!items || !items.length) {
@@ -458,142 +454,110 @@ function renderFeed(items, id) {
         }
       } catch(e) {}
     }
-    html += '<a class="feed-item" href="' + (item.link || '#') + '" target="_blank">'
-      + '<div class="feed-t">' + item.title + '</div>'
-      + '<div class="feed-m"><span class="feed-src">' + (item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
+    var href = /^https?:\/\//i.test(item.link || '') ? item.link : '#';
+    html += '<a class="feed-item" href="' + escHtml(href) + '" target="_blank" rel="noopener">'
+      + '<div class="feed-t">' + escHtml(item.title || '') + '</div>'
+      + '<div class="feed-m"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
       + '</a>';
   }
   el.innerHTML = html;
 }
 
-// ── NEWS AGGREGATOR ──
-Promise.all([
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-topstories', 'n_cbc', 10),
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml', 'n_bbc', 10),
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fglobalnews.ca%2Fbc%2Ffeed%2F', 'n_gnews', 10)
-]).then(function(results) {
-  var all = [];
-  var sources = ['CBC News', 'BBC World', 'Global BC'];
-  for (var i = 0; i < results.length; i++) {
-    if (results[i] && results[i].items) {
-      for (var j = 0; j < results[i].items.length; j++) {
-        var item = results[i].items[j];
-        item.source = sources[i];
-        // 24h filter
-        try {
-          var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
-          if (!isNaN(age) && age > 86400000) continue;
-        } catch(e) {}
-        all.push(item);
-      }
-    }
-  }
-  all.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
-  renderFeed(all, 'news-feed');
-});
+// ── FEED LOADER (shared for news + sports) ──
+function loadFeeds(configs, targetId) {
+  Promise.all(configs.map(function(c) { return fetchCached(c.url, c.key, 10); }))
+    .then(function(results) {
+      var all = [];
+      results.forEach(function(r, i) {
+        if (!r || !r.items) return;
+        r.items.forEach(function(item) {
+          item.source = configs[i].source;
+          try {
+            var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
+            if (!isNaN(age) && age > 86400000) return;
+          } catch(e) {}
+          all.push(item);
+        });
+      });
+      all.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+      renderFeed(all, targetId);
+    });
+}
 
-// ── SPORTS NEWS ──
-Promise.all([
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.espn.com%2Fespn%2Frss%2Fnews', 's_espn', 10),
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sportsnet.ca%2Ffeed%2F', 's_snet', 10),
-  fetchCached('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', 's_tsn', 10)
-]).then(function(results) {
-  var all = [];
-  var sources = ['ESPN', 'Sportsnet', 'TSN'];
-  for (var i = 0; i < results.length; i++) {
-    if (results[i] && results[i].items) {
-      for (var j = 0; j < results[i].items.length; j++) {
-        var item = results[i].items[j];
-        item.source = sources[i];
-        try {
-          var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
-          if (!isNaN(age) && age > 86400000) continue;
-        } catch(e) {}
-        all.push(item);
-      }
-    }
-  }
-  all.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
-  renderFeed(all, 'sports-feed');
-});
+loadFeeds([
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-topstories', key:'n_cbc', source:'CBC News'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml', key:'n_bbc', source:'BBC World'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fglobalnews.ca%2Fbc%2Ffeed%2F', key:'n_gnews', source:'Global BC'}
+], 'news-feed');
+
+loadFeeds([
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.espn.com%2Fespn%2Frss%2Fnews', key:'s_espn', source:'ESPN'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sportsnet.ca%2Ffeed%2F', key:'s_snet', source:'Sportsnet'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', key:'s_tsn', source:'TSN'}
+], 'sports-feed');
 
 // ── MY TEAMS TRACKER ──
 (function() {
   var teams = [
-    {name: 'Canucks', url: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/van', type: 'team'},
-    {name: 'Raptors', url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/tor', type: 'team'},
-    {name: 'Blue Jays', url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/tor', type: 'team'},
-    {name: 'BC Lions', url: 'https://site.api.espn.com/apis/site/v2/sports/football/cfl/scoreboard', type: 'scoreboard'}
+    {name:'Canucks', url:'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/van', type:'team'},
+    {name:'Raptors', url:'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/tor', type:'team'},
+    {name:'Blue Jays', url:'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/tor', type:'team'},
+    {name:'BC Lions', url:'https://site.api.espn.com/apis/site/v2/sports/football/cfl/scoreboard', type:'scoreboard'}
   ];
   var sfeed = document.getElementById('scores-feed');
-  var promises = teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); });
-
-  Promise.all(promises).then(function(results) {
-    var html = '';
-    for (var i = 0; i < teams.length; i++) {
-      var t = teams[i];
-      var data = results[i];
-      try {
-        if (!data) { html += '<div class="score-card"><b>' + t.name + ':</b>&nbsp;Unavailable</div>'; continue; }
-
-        if (t.type === 'scoreboard') {
-          // CFL — search for Lions game
-          var game = null;
-          if (data.events) {
-            for (var k = 0; k < data.events.length; k++) {
-              if (data.events[k].name.indexOf('Lions') !== -1) { game = data.events[k]; break; }
+  Promise.all(teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); }))
+    .then(function(results) {
+      var html = '';
+      teams.forEach(function(t, i) {
+        var data = results[i];
+        try {
+          if (!data) { html += '<div class="score-card"><b>' + t.name + ':</b>&nbsp;Unavailable</div>'; return; }
+          if (t.type === 'scoreboard') {
+            var game = null;
+            if (data.events) data.events.some(function(ev) {
+              if (ev.name.indexOf('Lions') !== -1) { game = ev; return true; }
+            });
+            if (game) {
+              var hm = game.competitions[0].competitors[0], aw = game.competitions[0].competitors[1];
+              html += '<div class="score-card"><div class="score-teams">'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + aw.score + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + hm.score + '</span></div>'
+                + '</div><div class="score-status">' + game.status.type.detail + '</div></div>';
+            } else {
+              html += '<div class="score-card" style="color:var(--t3)"><b>BC Lions</b>&nbsp;— No game today</div>';
+            }
+          } else {
+            var ev = data.team && data.team.nextEvent && data.team.nextEvent[0];
+            if (ev) {
+              var hm = ev.competitions[0].competitors[0], aw = ev.competitions[0].competitors[1];
+              html += '<div class="score-card"><div class="score-teams">'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + (aw.score || '-') + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + (hm.score || '-') + '</span></div>'
+                + '</div><div class="score-status">' + (ev.status ? ev.status.type.detail : '') + '</div></div>';
+            } else {
+              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
             }
           }
-          if (game) {
-            var hm = game.competitions[0].competitors[0];
-            var aw = game.competitions[0].competitors[1];
-            html += '<div class="score-card">'
-              + '<div class="score-teams">'
-              + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + aw.score + '</span></div>'
-              + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + hm.score + '</span></div>'
-              + '</div>'
-              + '<div class="score-status">' + game.status.type.detail + '</div></div>';
-          } else {
-            html += '<div class="score-card" style="color:var(--t3)"><b>BC Lions</b>&nbsp;— No game today</div>';
-          }
-        } else {
-          // NHL/NBA/MLB team endpoint
-          if (data.team && data.team.nextEvent && data.team.nextEvent.length > 0) {
-            var ev = data.team.nextEvent[0];
-            var hm2 = ev.competitions[0].competitors[0];
-            var aw2 = ev.competitions[0].competitors[1];
-            var status = ev.status ? ev.status.type.detail : '';
-            html += '<div class="score-card">'
-              + '<div class="score-teams">'
-              + '<div class="score-row"><span>' + aw2.team.shortDisplayName + '</span><span>' + (aw2.score || '-') + '</span></div>'
-              + '<div class="score-row"><span>' + hm2.team.shortDisplayName + '</span><span>' + (hm2.score || '-') + '</span></div>'
-              + '</div>'
-              + '<div class="score-status">' + status + '</div></div>';
-          } else {
-            html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
-          }
+        } catch(e) {
+          console.warn('Score error for ' + t.name, e);
+          html += '<div class="score-card" style="color:var(--red)"><b>' + t.name + '</b>&nbsp;— Error</div>';
         }
-      } catch(e) {
-        console.warn('Score error for ' + t.name, e);
-        html += '<div class="score-card" style="color:var(--red)"><b>' + t.name + '</b>&nbsp;— Error</div>';
-      }
-    }
-    sfeed.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--t3)">No scores available</div>';
-  });
+      });
+      sfeed.innerHTML = html || '<div style="padding:40px;text-align:center;color:var(--t3)">No scores available</div>';
+    });
 })();
 
 // ── CALCULATOR ──
 var calcCur = '0', calcPrev = '', calcOperator = '', calcReset = false;
 function calcUpdate() {
   document.getElementById('calc-val').textContent = calcCur;
-  var sym = {'*':'×', '/':'÷', '-':'−', '+':'+'};
-  document.getElementById('calc-expr').textContent = calcPrev ? calcPrev + ' ' + (sym[calcOperator]||'') : '';
+  var sym = {'*':'×','/':'÷','-':'−','+':'+'};
+  document.getElementById('calc-expr').textContent = calcPrev ? calcPrev + ' ' + (sym[calcOperator] || '') : '';
 }
 function calcNum(n) {
   if (calcReset) { calcCur = ''; calcReset = false; }
   if (calcCur === '0' && n !== '.') calcCur = '';
-  calcCur += n;
-  calcUpdate();
+  calcCur += n; calcUpdate();
 }
 function calcDot() {
   if (calcReset) { calcCur = '0'; calcReset = false; }
@@ -602,33 +566,25 @@ function calcDot() {
 }
 function calcOp(op) {
   if (calcPrev && !calcReset) calcEqual();
-  calcPrev = calcCur;
-  calcOperator = op;
-  calcReset = true;
-  calcUpdate();
+  calcPrev = calcCur; calcOperator = op; calcReset = true; calcUpdate();
 }
 function calcEqual() {
   if (!calcPrev) return;
-  var a = parseFloat(calcPrev), b = parseFloat(calcCur), r = 0;
+  var a = parseFloat(calcPrev), b = parseFloat(calcCur), r;
   if (calcOperator === '+') r = a + b;
   else if (calcOperator === '-') r = a - b;
   else if (calcOperator === '*') r = a * b;
   else if (calcOperator === '/') r = b !== 0 ? a / b : 'Error';
   calcCur = typeof r === 'number' ? String(parseFloat(r.toFixed(10))) : r;
-  calcPrev = '';
-  calcOperator = '';
-  calcReset = true;
-  calcUpdate();
+  calcPrev = ''; calcOperator = ''; calcReset = true; calcUpdate();
 }
-function calcClear() { calcCur = '0'; calcPrev = ''; calcOperator = ''; calcReset = false; calcUpdate(); }
-function calcToggle() { if (calcCur !== '0') calcCur = String(-parseFloat(calcCur)); calcUpdate(); }
+function calcClear()   { calcCur = '0'; calcPrev = ''; calcOperator = ''; calcReset = false; calcUpdate(); }
+function calcToggle()  { if (calcCur !== '0') calcCur = String(-parseFloat(calcCur)); calcUpdate(); }
 function calcPercent() { calcCur = String(parseFloat(calcCur) / 100); calcUpdate(); }
 
 // ── NOTES ──
 var notes = [];
 try { notes = JSON.parse(localStorage.getItem('notes_v4') || '[]'); } catch(e) { notes = []; }
-
-function escHtml(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function renderNotes() {
   var el = document.getElementById('notes-list');
@@ -643,20 +599,14 @@ function renderNotes() {
   }
   el.innerHTML = html;
 }
-
 function saveNote() {
   var el = document.getElementById('cap-input');
   if (!el.value.trim()) return;
   var d = new Date();
-  notes.push({
-    t: el.value.trim(),
-    d: d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-  });
+  notes.push({t: el.value.trim(), d: d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
   localStorage.setItem('notes_v4', JSON.stringify(notes));
-  el.value = '';
-  renderNotes();
+  el.value = ''; renderNotes();
 }
-
 function delNote(i) {
   notes.splice(i, 1);
   localStorage.setItem('notes_v4', JSON.stringify(notes));
@@ -686,9 +636,7 @@ function toggleVoice() {
   };
   rec.onend = rec.onerror = function() { isRec = false; btn.innerHTML = '🎤 Dictate'; btn.classList.remove('rec'); };
   rec.start();
-  isRec = true;
-  btn.innerHTML = '⏹ Stop';
-  btn.classList.add('rec');
+  isRec = true; btn.innerHTML = '⏹ Stop'; btn.classList.add('rec');
 }
 </script>
 </body>
