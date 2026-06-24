@@ -48,7 +48,6 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .brand{display:flex;align-items:center;gap:6px;cursor:pointer}
 .tesla-logo{width:18px;height:20px;fill:var(--t1);flex-shrink:0}
 .tesla-word{font-size:13px;font-weight:700;letter-spacing:2px;color:var(--t1);line-height:1}
-#s-time{font-size:24px;font-weight:600;letter-spacing:-.3px;font-variant-numeric:tabular-nums}
 #s-date{font-size:11px;color:var(--t3);font-weight:500;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
 #weather-widget{font-size:20px;font-weight:500;display:flex;align-items:center;gap:8px;cursor:pointer}
 .w-temp{color:var(--t1);font-size:16px;font-weight:600}.w-icon{font-size:24px}
@@ -285,7 +284,7 @@ input[type="color"]:hover{border-color:var(--line2)}
   #main{overflow-y:auto;flex:none}
   #header{padding:10px 16px;height:auto;gap:12px;min-height:56px}
   #s-left,#s-right{gap:12px}
-  #s-time{font-size:20px}#s-date{font-size:10px}
+  #s-date{font-size:10px}
   #stock-widget{font-size:12px;padding-right:8px}#stock-widget .stk-label{font-size:10px}
   #weather-widget{font-size:18px}.w-icon{font-size:20px}.w-temp{font-size:14px}
   #main{padding:12px 14px 100px}
@@ -308,7 +307,6 @@ input[type="color"]:hover{border-color:var(--line2)}
       </svg>
       <span class="tesla-word">TESLA</span>
     </div>
-    <div id="s-time">--:--</div>
     <div id="s-date">———</div>
   </div>
   <div id="s-right">
@@ -750,8 +748,6 @@ function updateClock() {
   var d = new Date();
   var h = d.getHours() % 12 || 12;
   var m = String(d.getMinutes()).padStart(2, '0');
-  var time = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
-  document.getElementById('s-time').textContent = time;
   document.getElementById('s-date').textContent = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
   // Update hero clock (without AM/PM for compactness)
   var liveClockEl = document.getElementById('live-clock');
