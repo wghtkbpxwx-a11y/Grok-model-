@@ -904,6 +904,14 @@ function weatherIcon(code) {
   else p = '<path d="M17.5 13.5a4.5 4.5 0 0 0 0-9 6 6 0 0 0-11.6 1.6A4 4 0 0 0 6.5 13.5h11z"/><polyline points="12.5 12.5 9.5 18 13.5 18 10.5 23"/>';
   return '<svg class="wx-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" width="1em" height="1em">' + p + '</svg>';
 }
+function getWeatherDescription(code) {
+  if (code === 0) return 'Clear';
+  if (code <= 3) return 'Mostly Clear';
+  if (code <= 48) return 'Cloudy';
+  if (code <= 67) return 'Rainy';
+  if (code <= 77) return 'Snowy';
+  return 'Stormy';
+}
 function applyModules() {
   Object.keys(defaultSettings.modules).forEach(function(k) {
     var btn = document.querySelector('.dock-btn[data-p="' + k + '"]') || document.querySelector('.dock-submenu-item[data-p="' + k + '"]');
@@ -1521,7 +1529,7 @@ try {
 } catch(e) {}
 
 function loadWeatherForCoords() {
-  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day,weather_description';
+  var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day';
 
   var wTemp = document.querySelector('.w-temp');
   if (wTemp) wTemp.textContent = '...';
@@ -1545,7 +1553,7 @@ function loadWeatherForCoords() {
       var liveDesc = document.getElementById('live-weather-desc');
       if (liveTemp) liveTemp.textContent = tempC + '°C';
       if (liveIcon) liveIcon.innerHTML = icon;
-      if (liveDesc && data.current.weather_description) liveDesc.textContent = data.current.weather_description;
+      if (liveDesc) liveDesc.textContent = getWeatherDescription(data.current.weather_code);
 
       if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
       setTimeout(renderLiveStocks, 100);
