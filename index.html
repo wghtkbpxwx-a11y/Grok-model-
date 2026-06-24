@@ -13,9 +13,12 @@
 <style>
 :root {
   --bg: #000; --bg2: #0a0a0c;
-  --surface: rgba(255,255,255,0.06); --surface2: rgba(255,255,255,0.12);
-  --glass: rgba(30,30,30,0.7); --glass2: rgba(40,40,40,0.8);
-  --line: rgba(255,255,255,0.1); --line2: rgba(255,255,255,0.18);
+  --surface: rgba(255,255,255,0.05); --surface2: rgba(255,255,255,0.08);
+  --glass: rgba(20,20,24,0.6); --glass2: rgba(25,25,30,0.7);
+  --glass-hover: rgba(30,30,36,0.75);
+  --line: rgba(255,255,255,0.08); --line2: rgba(255,255,255,0.15);
+  --shadow: 0 8px 32px rgba(0,0,0,0.3);
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.15);
   --t1: #fff; --t2: #a1a1a6; --t3: #6e6e73;
   --accent: #3a82f6;
   --red: #ff453a; --red-bg: rgba(255,69,58,0.15); --green: #32d74b;
@@ -36,7 +39,7 @@ a{color:inherit;text-decoration:none}
 button{font-family:var(--f);cursor:pointer;border:none;background:none}
 
 /* HEADER */
-#header{display:flex;justify-content:space-between;align-items:center;padding:20px 40px;height:90px}
+#header{display:flex;justify-content:space-between;align-items:center;padding:16px 40px;height:90px;background:var(--glass);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--line);box-shadow:var(--shadow-sm)}
 #s-left,#s-right{display:flex;align-items:center;gap:20px}
 .tesla-logo{width:30px;height:32px;fill:var(--t1)}
 #s-time{font-size:36px;font-weight:500;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
@@ -55,21 +58,22 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
 
 /* DOCK */
-#dock{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:12px 20px;background:var(--glass);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border-radius:100px;border:1px solid var(--line);box-shadow:0 15px 40px rgba(0,0,0,.25);z-index:200;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none}
+#dock{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:12px 18px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:100px;border:1px solid var(--line);box-shadow:var(--shadow);z-index:200;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none;transition:all .3s ease}
 #dock::-webkit-scrollbar{display:none}
-.dock-btn{display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:100px;color:var(--t2);font-size:16px;font-weight:600;transition:all .2s;white-space:nowrap;cursor:grab}
-.dock-btn.on{background:var(--t1);color:var(--bg);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-.dock-btn:not(.on):active{background:var(--surface);transform:scale(.96)}
+.dock-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:100px;color:var(--t2);font-size:15px;font-weight:500;transition:all .25s;white-space:nowrap;cursor:grab;background:transparent}
+.dock-btn:hover{background:var(--surface);color:var(--t1)}
+.dock-btn.on{background:var(--t1);color:var(--bg);box-shadow:0 8px 20px rgba(255,255,255,.15)}
 .dock-btn:active{cursor:grabbing}
 .dock-btn.drag-over{opacity:0.5;transform:scale(0.95)}
-.dock-sep{width:1px;height:28px;background:var(--line2);margin:0 2px}
+.dock-sep{width:1px;height:24px;background:var(--line);margin:0 4px;opacity:0.6}
 
 /* COMPONENTS */
 .sec-title{font-size:14px;text-transform:uppercase;letter-spacing:2px;font-weight:600;color:var(--t3);margin:0 0 16px 4px;display:flex;align-items:center;gap:12px}
-.cardgroup{background:var(--glass2);border-radius:var(--r);border:1px solid var(--line);overflow:hidden;margin-bottom:28px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
-.row{display:flex;align-items:center;padding:20px 24px;border-bottom:1px solid var(--line);gap:16px;transition:background .15s;min-height:80px}
+.cardgroup{background:var(--glass2);border-radius:var(--r);border:1px solid var(--line);overflow:hidden;margin-bottom:28px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow-sm);transition:all .3s ease}
+.row{display:flex;align-items:center;padding:18px 24px;border-bottom:1px solid var(--line);gap:16px;transition:all .2s ease;min-height:80px}
 .row:last-child{border-bottom:none}
-.row:active{background:var(--surface2)}
+.row:hover{background:var(--glass-hover)}
+.row:active{background:var(--surface2);transform:scale(0.99)}
 .appicon{width:56px;height:56px;border-radius:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .appicon svg{width:32px;height:32px;display:block}
 
@@ -172,6 +176,29 @@ button{font-family:var(--f);cursor:pointer;border:none;background:none}
 .theme-preset.on{border-color:var(--accent);background:var(--accent);color:var(--bg)}
 .color-picker-wrap{display:flex;align-items:center;gap:12px;width:100%}
 input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-radius:8px;cursor:pointer}
+
+/* STOCKS DROPDOWN */
+#stocks-dropdown{position:fixed;bottom:120px;right:40px;width:320px;background:var(--glass2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);z-index:150;transform:translateY(10px);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,.69,.66,1);max-height:500px;display:flex;flex-direction:column}
+#stocks-dropdown.open{transform:translateY(0);opacity:1;pointer-events:auto}
+.stocks-dropdown-header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:8px}
+.stocks-dropdown-header input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;color:var(--t1);font-size:15px;font-family:var(--f);outline:none;transition:border-color .2s;text-transform:uppercase}
+.stocks-dropdown-header input:focus{border-color:var(--accent)}
+.stocks-dropdown-header button{padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:all .2s}
+.stocks-dropdown-header button:active{transform:scale(.96);opacity:.9}
+.stocks-dropdown-list{flex:1;overflow-y:auto;min-height:80px;max-height:350px}
+.stocks-dropdown-list::-webkit-scrollbar{width:6px}
+.stocks-dropdown-list::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
+.stock-item{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-size:14px;gap:8px}
+.stock-item:last-child{border-bottom:none}
+.stock-info{flex:1;min-width:0}
+.stock-sym{font-weight:600;color:var(--t1);margin-bottom:2px}
+.stock-px{color:var(--t2);font-size:12px}
+.stock-chg{font-weight:600;min-width:50px;text-align:right}
+.stock-chg.up{color:var(--green)}
+.stock-chg.down{color:var(--red)}
+.stock-remove{background:transparent;color:var(--t3);font-size:16px;padding:0;cursor:pointer;transition:color .2s}
+.stock-remove:hover{color:var(--red)}
+.stocks-dropdown-footer{padding:12px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--t3);text-align:center;background:var(--surface)}
 
 /* RESPONSIVE (phones / portrait) */
 @media (max-width:760px){
@@ -487,6 +514,45 @@ input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-r
     <button class="btn btn-gh" onclick="resetSettings()">Reset to defaults</button>
   </section>
 
+  <!-- BOOKMARKS PANEL -->
+  <section class="panel" id="p-saved">
+    <div class="sec-title">📌 Saved Articles</div>
+    <div class="cardgroup" id="bookmarks-list"><div class="muted">No saved articles yet. Click the bookmark icon on any story.</div></div>
+  </section>
+
+  <!-- TASKS/TODO PANEL -->
+  <section class="panel" id="p-tasks">
+    <div class="sec-title">✓ Tasks</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="task-input" placeholder="Add a new task..." class="capbox" style="min-height:50px;margin-bottom:10px">
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-pri" onclick="addTask()">Add Task</button>
+        <button class="btn btn-gh" onclick="clearCompletedTasks()">Clear Done</button>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--t3)" id="task-count"></div>
+    </div>
+    <div class="cardgroup" id="tasks-list"><div class="muted">No tasks. Add one to get started!</div></div>
+  </section>
+
+  <!-- WEATHER FORECAST PANEL -->
+  <section class="panel" id="p-weather">
+    <div class="sec-title">🌤️ 7-Day Forecast</div>
+    <div id="forecast-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+      <div class="muted">Loading forecast...</div>
+    </div>
+  </section>
+
+  <!-- QUICK LINKS PANEL -->
+  <section class="panel" id="p-links">
+    <div class="sec-title">🔗 Quick Links</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="link-title" placeholder="Link title" class="capbox" style="min-height:45px;margin-bottom:8px">
+      <input type="url" id="link-url" placeholder="https://example.com" class="capbox" style="min-height:45px;margin-bottom:10px">
+      <button class="btn btn-pri" onclick="addLink()">Add Link</button>
+    </div>
+    <div class="split" id="links-list"><div class="muted">No links yet. Add your favorites!</div></div>
+  </section>
+
 </main>
 
 <nav id="dock">
@@ -499,8 +565,25 @@ input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-r
   <button class="dock-btn" data-p="stream" draggable="true">Streaming</button>
   <button class="dock-btn" data-p="learn" draggable="true">Learning</button>
   <div class="dock-sep"></div>
+  <button class="dock-btn" data-p="saved" draggable="true">Saved</button>
+  <button class="dock-btn" data-p="tasks" draggable="true">Tasks</button>
+  <button class="dock-btn" data-p="stocks" draggable="true">Stocks</button>
+  <button class="dock-btn" data-p="weather" draggable="true">Weather</button>
+  <button class="dock-btn" data-p="links" draggable="true">Links</button>
+  <div class="dock-sep"></div>
   <button class="dock-btn" data-p="set" draggable="true" aria-label="Settings">⚙</button>
 </nav>
+
+<div id="stocks-dropdown">
+  <div class="stocks-dropdown-header">
+    <input type="text" id="stocks-dropdown-input" placeholder="Add ticker (e.g., AAPL)" style="text-transform:uppercase">
+    <button onclick="addStock()">Add</button>
+  </div>
+  <div class="stocks-dropdown-list" id="stocks-dropdown-list">
+    <div class="muted" style="padding:20px;text-align:center;font-size:13px">No stocks yet</div>
+  </div>
+  <div class="stocks-dropdown-footer">Click stock name to view details</div>
+</div>
 
 <script>
 // ── CLOCK (syncs to minute boundary) ──
@@ -526,8 +609,22 @@ function goPanel(p) {
   if (panel) panel.classList.add('on');
   document.getElementById('main').scrollTop = 0;
 }
+function toggleStocksDropdown() {
+  var dropdown = document.getElementById('stocks-dropdown');
+  dropdown.classList.toggle('open');
+  if (dropdown.classList.contains('open')) {
+    document.getElementById('stocks-dropdown-input').focus();
+    fetchStocks();
+  }
+}
 document.querySelectorAll('.dock-btn').forEach(function(btn) {
-  btn.addEventListener('click', function() { goPanel(btn.dataset.p); });
+  btn.addEventListener('click', function() {
+    if (btn.dataset.p === 'stocks') {
+      toggleStocksDropdown();
+    } else {
+      goPanel(btn.dataset.p);
+    }
+  });
 });
 
 // ── SETTINGS (theme + module visibility, persisted) ──
@@ -571,13 +668,16 @@ var themePresets = {
   lavender: {accent:'#a78bfa'}
 };
 function applyColors() {
-  var accent = settings.accentColor || themePresets.default.accent;
-  document.documentElement.style.setProperty('--accent', accent);
-  document.getElementById('accent-picker').value = accent;
-  var presets = document.querySelectorAll('.theme-preset');
-  presets.forEach(function(p) { p.classList.remove('on'); });
-  var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
-  if (preset) preset.classList.add('on');
+  try {
+    var accent = settings.accentColor || themePresets.default.accent;
+    document.documentElement.style.setProperty('--accent', accent);
+    var picker = document.getElementById('accent-picker');
+    if (picker) picker.value = accent;
+    var presets = document.querySelectorAll('.theme-preset');
+    presets.forEach(function(p) { p.classList.remove('on'); });
+    var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
+    if (preset) preset.classList.add('on');
+  } catch(e) { console.warn('applyColors error:', e); }
 }
 function resetSettings() {
   settings = JSON.parse(JSON.stringify(defaultSettings));
@@ -585,7 +685,7 @@ function resetSettings() {
   settings.accentColor = themePresets.default.accent;
   settings.dockOrder = null;
   saveDockOrder();
-  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
+  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder(); initDragAndDrop();
 }
 document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
   t.addEventListener('click', function() {
@@ -628,24 +728,27 @@ function applyDockOrder() {
       if (btns[p]) dock.appendChild(btns[p]);
       else if (p === 'sep' && seps.length > 0) dock.appendChild(seps.shift());
     });
-    initDragAndDrop();
   } catch(e) {}
 }
 function initDragAndDrop() {
+  console.log('Initializing drag handlers for', document.querySelectorAll('.dock-btn').length, 'buttons');
   document.querySelectorAll('.dock-btn').forEach(function(btn) {
     btn.addEventListener('dragstart', function(e) {
+      console.log('dragstart:', btn.textContent);
       draggedBtn = btn;
       btn.style.opacity = '0.5';
+      e.dataTransfer.setData('text/html', btn.innerHTML);
       e.dataTransfer.effectAllowed = 'move';
     });
     btn.addEventListener('dragend', function(e) {
+      console.log('dragend');
       document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
       draggedBtn = null;
     });
     btn.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
       if (draggedBtn && btn !== draggedBtn) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         btn.classList.add('drag-over');
         var dock = document.getElementById('dock');
         var allBtns = Array.from(dock.querySelectorAll('.dock-btn'));
@@ -663,12 +766,199 @@ function initDragAndDrop() {
     });
     btn.addEventListener('drop', function(e) {
       e.preventDefault();
+      console.log('drop');
       saveDockOrder();
     });
   });
 }
 
-applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder();
+try {
+  console.log('Starting initialization...');
+  applyTheme(); console.log('✓ applyTheme');
+  applyModules(); console.log('✓ applyModules');
+  syncToggles(); console.log('✓ syncToggles');
+  applyColors(); console.log('✓ applyColors');
+  applyDockOrder(); console.log('✓ applyDockOrder');
+  initDragAndDrop(); console.log('✓ initDragAndDrop');
+} catch(e) { console.error('Init error:', e.message); }
+
+// ── BOOKMARKS ──
+var bookmarks = [];
+try { bookmarks = JSON.parse(localStorage.getItem('bookmarks_v1') || '[]'); } catch(e) { bookmarks = []; }
+function saveBookmark(title, link, source) {
+  bookmarks.unshift({title: title, link: link, source: source, date: new Date().toLocaleDateString()});
+  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  renderBookmarks();
+}
+function deleteBookmark(idx) {
+  bookmarks.splice(idx, 1);
+  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  renderBookmarks();
+}
+function renderBookmarks() {
+  var el = document.getElementById('bookmarks-list');
+  if (!bookmarks.length) { el.innerHTML = '<div class="muted">No saved articles yet. Click the bookmark icon on any story.</div>'; return; }
+  var html = '';
+  bookmarks.forEach(function(b, i) {
+    html += '<a class="feed-item" href="' + escHtml(b.link) + '" target="_blank" rel="noopener">'
+      + '<div class="feed-t">' + escHtml(b.title) + '</div>'
+      + '<div class="feed-m"><span class="feed-src">' + escHtml(b.source) + '</span><span>' + b.date + '</span></div>'
+      + '</a>';
+  });
+  el.innerHTML = html;
+}
+
+// ── TASKS ──
+var tasks = [];
+try { tasks = JSON.parse(localStorage.getItem('tasks_v1') || '[]'); } catch(e) { tasks = []; }
+function addTask() {
+  var inp = document.getElementById('task-input');
+  if (!inp.value.trim()) return;
+  tasks.push({text: inp.value.trim(), done: false, date: new Date().toLocaleDateString()});
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  inp.value = '';
+  renderTasks();
+}
+function toggleTask(idx) {
+  tasks[idx].done = !tasks[idx].done;
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function deleteTask(idx) {
+  tasks.splice(idx, 1);
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function clearCompletedTasks() {
+  tasks = tasks.filter(function(t) { return !t.done; });
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function renderTasks() {
+  var done = tasks.filter(function(t) { return t.done; }).length;
+  var total = tasks.length;
+  document.getElementById('task-count').textContent = done + ' of ' + total + ' completed';
+  var el = document.getElementById('tasks-list');
+  if (!total) { el.innerHTML = '<div class="muted">No tasks. Add one to get started!</div>'; return; }
+  var html = '';
+  tasks.forEach(function(t, i) {
+    html += '<div class="noterow" style="align-items:center">'
+      + '<input type="checkbox" onclick="toggleTask(' + i + ')" ' + (t.done ? 'checked' : '') + ' style="width:20px;height:20px;cursor:pointer">'
+      + '<div class="n-txt" style="' + (t.done ? 'text-decoration:line-through;opacity:0.6;' : '') + '">' + escHtml(t.text) + '</div>'
+      + '<button class="n-del" onclick="deleteTask(' + i + ')">×</button>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── STOCKS WATCHLIST ──
+var watchlist = [];
+try { watchlist = JSON.parse(localStorage.getItem('stocks_watchlist_v1') || '[]'); } catch(e) { watchlist = []; }
+function addStock() {
+  var inp = document.getElementById('stocks-dropdown-input');
+  var sym = inp.value.trim().toUpperCase();
+  if (!sym || watchlist.includes(sym)) return;
+  watchlist.push(sym);
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  inp.value = '';
+  fetchStocks();
+}
+function deleteStock(sym) {
+  watchlist = watchlist.filter(function(s) { return s !== sym; });
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  fetchStocks();
+}
+function fetchStocks() {
+  var el = document.getElementById('stocks-dropdown-list');
+  if (!watchlist.length) { el.innerHTML = '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No stocks yet</div>'; return; }
+  el.innerHTML = '<div class="muted" style="padding:20px;text-align:center;font-size:13px">Loading prices...</div>';
+  Promise.all(watchlist.map(function(sym) {
+    return fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=1d', 'stk_' + sym, 5);
+  })).then(function(results) {
+    var html = '';
+    watchlist.forEach(function(sym, i) {
+      var data = results[i];
+      if (data && data.chart && data.chart.result) {
+        var meta = data.chart.result[0].meta;
+        var px = parseFloat(meta.regularMarketPrice);
+        var prev = parseFloat(meta.chartPreviousClose);
+        var diff = px - prev;
+        var pct = ((diff / prev) * 100).toFixed(2);
+        var chgClass = diff >= 0 ? 'up' : 'down';
+        html += '<div class="stock-item">'
+          + '<a href="https://finance.yahoo.com/quote/' + sym + '/" target="_blank" rel="noopener" style="flex:1;min-width:0;color:inherit;text-decoration:none;cursor:pointer">'
+          + '<div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">$' + px.toFixed(2) + '</div></div>'
+          + '</a>'
+          + '<div class="stock-chg ' + chgClass + '">' + (diff >= 0 ? '+' : '') + pct + '%</div>'
+          + '<button class="stock-remove" onclick="deleteStock(\'' + sym + '\'); event.stopPropagation();">×</button>'
+          + '</div>';
+      } else {
+        html += '<div class="stock-item"><div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">Error loading</div></div></div>';
+      }
+    });
+    el.innerHTML = html || '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No data</div>';
+  });
+}
+
+// ── WEATHER FORECAST ──
+function loadForecast() {
+  fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto', 'wx_forecast', 240)
+    .then(function(data) {
+      if (!data || !data.daily) return;
+      var html = '';
+      var now = new Date();
+      for (var i = 0; i < 7; i++) {
+        var date = new Date(now);
+        date.setDate(date.getDate() + i);
+        var code = data.daily.weather_code[i];
+        var emoji = code === 0 ? '☀️' : code <= 3 ? '⛅' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : code <= 77 ? '❄️' : '⛈️';
+        var hi = Math.round(data.daily.temperature_2m_max[i]);
+        var lo = Math.round(data.daily.temperature_2m_min[i]);
+        var day = date.toLocaleDateString('en-US', {weekday:'short'});
+        html += '<div style="background:var(--glass2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center">'
+          + '<div style="font-size:14px;color:var(--t2);margin-bottom:6px">' + day + '</div>'
+          + '<div style="font-size:28px;margin:6px 0">' + emoji + '</div>'
+          + '<div style="font-size:13px;color:var(--t1)"><span style="color:var(--green)">' + hi + '°</span> / <span style="color:var(--t3)">' + lo + '°</span></div>'
+          + '</div>';
+      }
+      document.getElementById('forecast-list').innerHTML = html;
+    });
+}
+
+// ── QUICK LINKS ──
+var quickLinks = [];
+try { quickLinks = JSON.parse(localStorage.getItem('quick_links_v1') || '[]'); } catch(e) { quickLinks = []; }
+function addLink() {
+  var title = document.getElementById('link-title').value.trim();
+  var url = document.getElementById('link-url').value.trim();
+  if (!title || !url) return;
+  if (!url.match(/^https?:\/\//)) url = 'https://' + url;
+  quickLinks.push({title: title, url: url});
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  document.getElementById('link-title').value = '';
+  document.getElementById('link-url').value = '';
+  renderLinks();
+}
+function deleteLink(idx) {
+  quickLinks.splice(idx, 1);
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  renderLinks();
+}
+function renderLinks() {
+  var el = document.getElementById('links-list');
+  if (!quickLinks.length) { el.innerHTML = '<div class="muted">No links yet. Add your favorites!</div>'; return; }
+  var html = '';
+  quickLinks.forEach(function(l, i) {
+    html += '<a href="' + escHtml(l.url) + '" target="_blank" rel="noopener" class="row" style="border-radius:var(--r);margin-bottom:10px;flex-direction:column;gap:0">'
+      + '<div style="font-weight:600;color:var(--accent)">' + escHtml(l.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--t3);margin-top:4px">' + escHtml(l.url.replace(/^https?:\/\//,'')) + '</div>'
+      + '</a>'
+      + '<button class="btn btn-gh" style="width:100%;margin-bottom:10px;font-size:13px" onclick="deleteLink(' + i + ')">Delete</button>';
+  });
+  el.innerHTML = html;
+}
+
+renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 
 // ── FETCH CACHED ──
 function fetchCached(url, key, ttlMin) {
@@ -750,10 +1040,13 @@ function renderFeed(items, id) {
       } catch(e) {}
     }
     var href = /^https?:\/\//i.test(item.link || '') ? item.link : '#';
-    html += '<a class="feed-item" href="' + escHtml(href) + '" target="_blank" rel="noopener">'
+    html += '<div class="feed-item" style="display:flex;gap:12px;align-items:stretch;padding:0!important;border:none!important">'
+      + '<a href="' + escHtml(href) + '" target="_blank" rel="noopener" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">'
       + '<div class="feed-t">' + escHtml(item.title || '') + '</div>'
-      + '<div class="feed-m"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
-      + '</a>';
+      + '<div class="feed-m" style="margin:10px 0 0"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
+      + '</a>'
+      + '<button class="n-del" onclick="saveBookmark(\'' + escHtml(item.title || '').replace(/'/g,"\\'") + '\',\'' + escHtml(href).replace(/'/g,"\\'") + '\',\'' + escHtml(item.source || 'News').replace(/'/g,"\\'") + '\')" style="border-left:1px solid var(--line);padding:0 12px;cursor:pointer;font-size:20px">📌</button>'
+      + '</div>';
   }
   el.innerHTML = html;
 }
@@ -970,6 +1263,15 @@ function toggleVoice() {
   rec.start();
   isRec = true; btn.innerHTML = '⏹ Stop'; btn.classList.add('rec');
 }
+
+// ── STOCKS DROPDOWN CLICK-OUTSIDE LISTENER ──
+document.addEventListener('click', function(e) {
+  var dropdown = document.getElementById('stocks-dropdown');
+  var btn = document.querySelector('.dock-btn[data-p="stocks"]');
+  if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
 </script>
 </body>
 </html>
