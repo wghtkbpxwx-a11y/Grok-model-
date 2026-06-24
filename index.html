@@ -59,6 +59,24 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #main{flex:1;padding:20px 32px 120px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
 #main::-webkit-scrollbar{width:6px}
 #main::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+
+/* LIVE PANEL HERO LAYOUT */
+.live-hero{background:var(--glass2);border:1px solid var(--line);border-radius:var(--r);padding:28px 24px;margin-bottom:28px;display:flex;flex-direction:column;gap:16px}
+.live-hero-time{display:flex;align-items:flex-end;gap:16px}
+.live-hero-clock{font-size:48px;font-weight:700;line-height:1;letter-spacing:-1px}
+.live-hero-weather{display:flex;align-items:center;gap:8px;cursor:pointer}
+.live-hero-temp{font-size:22px;font-weight:600}
+.live-hero-icon{font-size:28px}
+.live-stocks-row{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin:0 -24px 0 -24px;padding-left:24px;padding-right:24px}
+.live-stocks-row::-webkit-scrollbar{height:3px}
+.live-stocks-row::-webkit-scrollbar-thumb{background:var(--line2);border-radius:2px}
+.stock-chip{display:flex;align-items:center;gap:4px;padding:6px 12px;background:var(--surface);border:1px solid var(--line);border-radius:8px;white-space:nowrap;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;flex-shrink:0}
+.stock-chip:hover{background:var(--surface2)}
+.stock-chip-sym{color:var(--t1)}
+.stock-chip-px{color:var(--t3);font-weight:500}
+.stock-chip-chg{font-weight:700;min-width:32px;text-align:right}
+.stock-chip-chg.up{color:var(--green)}
+.stock-chip-chg.down{color:var(--red)}
 .panel{display:none;animation:fadeUp .3s ease forwards;overflow:visible}
 .panel.on{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
@@ -307,8 +325,27 @@ input[type="color"]:hover{border-color:var(--line2)}
 
 <main id="main">
 
-  <!-- LIVE PANEL -->
+  <!-- LIVE PANEL: GLANCEABLE DASHBOARD ESSENTIALS -->
   <section class="panel on" id="p-live">
+    <!-- Hero: Time + Weather -->
+    <div class="live-hero">
+      <div class="live-hero-time">
+        <div class="live-hero-clock" id="live-clock">--:--</div>
+        <div class="live-hero-weather" onclick="goPanel('weather')" title="View full forecast">
+          <div>
+            <div class="live-hero-temp" id="live-temp">--°C</div>
+            <div class="live-hero-desc" id="live-weather-desc">—</div>
+          </div>
+          <div class="live-hero-icon" id="live-icon">🌤</div>
+        </div>
+      </div>
+      <!-- Top Stocks Chip Row -->
+      <div class="live-stocks-row" id="live-stocks-row">
+        <div class="muted" style="padding:8px;font-size:12px">Loading stocks…</div>
+      </div>
+    </div>
+
+    <!-- News, Scores, Fantasy in tabbed layout -->
     <div class="split">
       <div>
         <div class="sec-title"><div class="live-dot"></div> Live News
@@ -697,9 +734,42 @@ function updateClock() {
   var d = new Date();
   var h = d.getHours() % 12 || 12;
   var m = String(d.getMinutes()).padStart(2, '0');
-  document.getElementById('s-time').textContent = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
+  var time = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
+  document.getElementById('s-time').textContent = time;
   document.getElementById('s-date').textContent = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
+  // Update hero clock (without AM/PM for compactness)
+  var liveClockEl = document.getElementById('live-clock');
+  if (liveClockEl) liveClockEl.textContent = h + ':' + m;
   if (settings.themeMode === 'auto') applyAutoTheme();
+}
+
+function renderLiveStocks() {
+  var el = document.getElementById('live-stocks-row');
+  if (!watchlist || !watchlist.length) { el.innerHTML = '<div class="muted" style="padding:8px;font-size:12px">Add stocks via More › Stocks</div>'; return; }
+  Promise.all(watchlist.slice(0, 4).map(function(sym) {
+    return fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=1d', 'stk_live_' + sym, 5);
+  })).then(function(results) {
+    var html = '';
+    watchlist.slice(0, 4).forEach(function(sym, i) {
+      var data = results[i];
+      if (data && data.chart && data.chart.result) {
+        var meta = data.chart.result[0].meta;
+        var px = parseFloat(meta.regularMarketPrice);
+        var prev = parseFloat(meta.chartPreviousClose);
+        var diff = px - prev;
+        var pct = ((diff / prev) * 100).toFixed(1);
+        var chgClass = diff >= 0 ? 'up' : 'down';
+        html += '<div class="stock-chip" onclick="goPanel(\'stocks\')">'
+          + '<span class="stock-chip-sym">' + sym + '</span>'
+          + '<span class="stock-chip-px">$' + px.toFixed(2) + '</span>'
+          + '<span class="stock-chip-chg ' + chgClass + '">' + (diff >= 0 ? '+' : '') + pct + '%</span>'
+          + '</div>';
+      }
+    });
+    el.innerHTML = html || '<div class="muted" style="padding:8px;font-size:12px">Loading prices…</div>';
+  }).catch(function() {
+    el.innerHTML = '<div class="muted" style="padding:8px;font-size:12px">Stock prices unavailable</div>';
+  });
 }
 (function tickClock() {
   updateClock();
@@ -1134,6 +1204,8 @@ function fetchStocks() {
       }
     });
     el.innerHTML = html || '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No data</div>';
+    // Also update the live stocks chips in hero
+    renderLiveStocks();
   });
 }
 // Delegated remove handler (attached once; survives innerHTML updates of the list)
@@ -1227,13 +1299,26 @@ function fetchCached(url, key, ttlMin) {
 }
 
 // ── WEATHER + AUTO THEME ──
-fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code,is_day', 'wx', 15)
+fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code,is_day,weather_description', 'wx', 15)
 .then(function(data) {
   if (data && data.current) {
-    document.querySelector('.w-temp').textContent = Math.round(data.current.temperature_2m) + '°C';
-    document.querySelector('.w-icon').innerHTML = weatherIcon(data.current.weather_code);
+    var tempC = Math.round(data.current.temperature_2m);
+    var icon = weatherIcon(data.current.weather_code);
+    document.querySelector('.w-temp').textContent = tempC + '°C';
+    document.querySelector('.w-icon').innerHTML = icon;
+
+    // Update hero section
+    var liveTemp = document.getElementById('live-temp');
+    var liveIcon = document.getElementById('live-icon');
+    var liveDesc = document.getElementById('live-weather-desc');
+    if (liveTemp) liveTemp.textContent = tempC + '°C';
+    if (liveIcon) liveIcon.innerHTML = icon;
+    if (liveDesc && data.current.weather_description) liveDesc.textContent = data.current.weather_description;
 
     if (settings.themeMode === 'auto') { setAutoTheme(data.current.is_day === 1); syncThemeModeButtons(); }
+
+    // Render live stocks chips when weather loads
+    setTimeout(renderLiveStocks, 100);
   }
 });
 
