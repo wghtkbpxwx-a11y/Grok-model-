@@ -631,20 +631,24 @@ function applyDockOrder() {
   } catch(e) {}
 }
 function initDragAndDrop() {
+  console.log('Initializing drag handlers for', document.querySelectorAll('.dock-btn').length, 'buttons');
   document.querySelectorAll('.dock-btn').forEach(function(btn) {
     btn.addEventListener('dragstart', function(e) {
+      console.log('dragstart:', btn.textContent);
       draggedBtn = btn;
       btn.style.opacity = '0.5';
+      e.dataTransfer.setData('text/html', btn.innerHTML);
       e.dataTransfer.effectAllowed = 'move';
     });
     btn.addEventListener('dragend', function(e) {
+      console.log('dragend');
       document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
       draggedBtn = null;
     });
     btn.addEventListener('dragover', function(e) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
       if (draggedBtn && btn !== draggedBtn) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         btn.classList.add('drag-over');
         var dock = document.getElementById('dock');
         var allBtns = Array.from(dock.querySelectorAll('.dock-btn'));
@@ -662,6 +666,7 @@ function initDragAndDrop() {
     });
     btn.addEventListener('drop', function(e) {
       e.preventDefault();
+      console.log('drop');
       saveDockOrder();
     });
   });
