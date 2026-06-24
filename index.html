@@ -745,7 +745,7 @@ document.addEventListener('click', function(e) {
 
 // ── SETTINGS (theme + module visibility, persisted) ──
 
-function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {} }
+function saveSettings() { saveLS(SETTINGS_KEY, settings); }
 function applyTheme() {
   document.documentElement.classList.toggle('light', settings.theme === 'light');
   var m = document.querySelector('meta[name="theme-color"]');
@@ -866,7 +866,7 @@ document.getElementById('accent-picker').addEventListener('input', function(e) {
 // ── DOCK REORDERING ──
 function saveDockOrder() {
   var order = Array.from(document.querySelectorAll('.dock-btn[data-p]')).map(function(b) { return b.dataset.p; });
-  try { localStorage.setItem('dock_order_v1', JSON.stringify(order)); } catch(e) {}
+  saveLS('dock_order_v1', order);
 }
 function applyDockOrder() {
   try {
@@ -884,17 +884,14 @@ function applyDockOrder() {
   } catch(e) {}
 }
 function initDragAndDrop() {
-  console.log('Initializing drag handlers for', document.querySelectorAll('.dock-btn').length, 'buttons');
   document.querySelectorAll('.dock-btn').forEach(function(btn) {
     btn.addEventListener('dragstart', function(e) {
-      console.log('dragstart:', btn.textContent);
       draggedBtn = btn;
       btn.style.opacity = '0.5';
       e.dataTransfer.setData('text/html', btn.innerHTML);
       e.dataTransfer.effectAllowed = 'move';
     });
     btn.addEventListener('dragend', function(e) {
-      console.log('dragend');
       document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
       draggedBtn = null;
     });
@@ -919,20 +916,18 @@ function initDragAndDrop() {
     });
     btn.addEventListener('drop', function(e) {
       e.preventDefault();
-      console.log('drop');
       saveDockOrder();
     });
   });
 }
 
 try {
-  console.log('Starting initialization...');
-  applyTheme(); console.log('✓ applyTheme');
-  applyModules(); console.log('✓ applyModules');
-  syncToggles(); console.log('✓ syncToggles');
-  applyColors(); console.log('✓ applyColors');
-  applyDockOrder(); console.log('✓ applyDockOrder');
-  initDragAndDrop(); console.log('✓ initDragAndDrop');
+  applyTheme();
+  applyModules();
+  syncToggles();
+  applyColors();
+  applyDockOrder();
+  initDragAndDrop();
 } catch(e) { console.error('Init error:', e.message); }
 
 // ── BOOKMARKS ──
@@ -946,7 +941,7 @@ function saveBookmark(title, link, source) {
     bookmarks.unshift({title: title, link: link, source: source, date: new Date().toLocaleDateString()});
     if (bookmarks.length > 100) bookmarks = bookmarks.slice(0, 100);
   }
-  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  saveLS('bookmarks_v1', bookmarks);
   renderBookmarks();
   renderFeed(currentFeed || [], 'news-feed');
   return true;
@@ -954,7 +949,7 @@ function saveBookmark(title, link, source) {
 function deleteBookmark(idx) {
   if (idx >= 0 && idx < bookmarks.length) {
     bookmarks.splice(idx, 1);
-    try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+    saveLS('bookmarks_v1', bookmarks);
     renderBookmarks();
   }
 }
@@ -982,23 +977,23 @@ function addTask() {
   if (inp.value.length > 500) { alert('Task too long (max 500 characters)'); return; }
   if (tasks.length >= 200) { alert('Maximum 200 tasks'); return; }
   tasks.push({text: inp.value.trim(), done: false, date: new Date().toLocaleDateString()});
-  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  saveLS('tasks_v1', tasks);
   inp.value = '';
   renderTasks();
 }
 function toggleTask(idx) {
   tasks[idx].done = !tasks[idx].done;
-  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  saveLS('tasks_v1', tasks);
   renderTasks();
 }
 function deleteTask(idx) {
   tasks.splice(idx, 1);
-  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  saveLS('tasks_v1', tasks);
   renderTasks();
 }
 function clearCompletedTasks() {
   tasks = tasks.filter(function(t) { return !t.done; });
-  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  saveLS('tasks_v1', tasks);
   renderTasks();
 }
 function renderTasks() {
@@ -1026,13 +1021,13 @@ function addStock() {
   if (!sym || watchlist.includes(sym)) { inp.value = ''; return; }
   if (!/^[A-Z]{1,5}(\.[A-Z]{2})?$/.test(sym)) { alert('Invalid ticker format'); inp.value = ''; return; }
   watchlist.push(sym);
-  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  saveLS('stocks_watchlist_v1', watchlist);
   inp.value = '';
   fetchStocks();
 }
 function deleteStock(sym) {
   watchlist = watchlist.filter(function(s) { return s !== sym; });
-  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  saveLS('stocks_watchlist_v1', watchlist);
   fetchStocks();
 }
 function fetchStocks() {
@@ -1100,14 +1095,14 @@ function addLink() {
   if (!url.match(/^https?:\/\//)) url = 'https://' + url;
   if (!isValidUrl(url)) { alert('Invalid URL'); return; }
   quickLinks.push({title: title, url: url});
-  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  saveLS('quick_links_v1', quickLinks);
   document.getElementById('link-title').value = '';
   document.getElementById('link-url').value = '';
   renderLinks();
 }
 function deleteLink(idx) {
   quickLinks.splice(idx, 1);
-  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  saveLS('quick_links_v1', quickLinks);
   renderLinks();
 }
 function renderLinks() {
@@ -1139,7 +1134,7 @@ function fetchCached(url, key, ttlMin) {
     if (!r.ok) throw new Error('HTTP ' + r.status);
     return r.json();
   }).then(function(data) {
-    try { localStorage.setItem(key, JSON.stringify({t: Date.now(), data: data})); } catch(e) {}
+    saveLS(key, {t: Date.now(), data: data});
     return data;
   }).catch(function(e) {
     console.warn('Fetch failed for ' + key + ':', e);
@@ -1183,6 +1178,7 @@ fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=
 });
 
 // ── UTILITIES ──
+function saveLS(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(e) {} }
 function escHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
 }
@@ -1425,12 +1421,12 @@ function saveNote() {
   if (el.value.length > 5000) { alert('Note too long (max 5000 characters)'); return; }
   var d = new Date();
   notes.push({t: el.value.trim(), d: d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
-  try { localStorage.setItem('notes_v4', JSON.stringify(notes)); } catch(e) {}
+  saveLS('notes_v4', notes);
   el.value = ''; renderNotes();
 }
 function delNote(i) {
   notes.splice(i, 1);
-  localStorage.setItem('notes_v4', JSON.stringify(notes));
+  saveLS('notes_v4', notes);
   renderNotes();
 }
 renderNotes();
