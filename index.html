@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Updated: 2026-06-24 Professional Polish v3 -->
+<!-- Updated: 2026-06-24 Liquid Glass + Stocks Dropdown v2 -->
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -54,22 +54,32 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #stock-widget .stk-label{color:var(--t2);font-size:15px}
 
 /* MAIN */
-#main{flex:1;padding:10px 40px 140px;overflow-y:auto;scroll-behavior:smooth}
+#main{flex:1;padding:10px 40px 140px;overflow-y:auto;overflow-x:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;-webkit-user-select:text;user-select:text}
 #main::-webkit-scrollbar{width:8px}
 #main::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
-.panel{display:none;animation:fadeUp .3s ease forwards}
+.panel{display:none;animation:fadeUp .3s ease forwards;overflow:visible}
 .panel.on{display:block}
 @keyframes fadeUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:none}}
 
 /* DOCK */
 #dock{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:12px 18px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:100px;border:1px solid var(--line);box-shadow:var(--shadow);z-index:200;max-width:calc(100% - 24px);overflow-x:auto;scrollbar-width:none;transition:all .3s cubic-bezier(.34,.69,.66,1)}
 #dock::-webkit-scrollbar{display:none}
-.dock-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:100px;color:var(--t2);font-size:15px;font-weight:500;transition:all .25s cubic-bezier(.34,.69,.66,1);white-space:nowrap;cursor:grab;background:transparent;user-select:none}
+.dock-btn{display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:100px;color:var(--t2);font-size:15px;font-weight:500;transition:all .25s cubic-bezier(.34,.69,.66,1);white-space:nowrap;cursor:grab;background:transparent;user-select:none;position:relative}
 .dock-btn:hover{background:var(--surface);color:var(--t1);transform:translateY(-2px)}
 .dock-btn.on{background:var(--t1);color:var(--bg);box-shadow:0 6px 20px rgba(255,255,255,.15)}
 .dock-btn:active{cursor:grabbing}
 .dock-btn.drag-over{opacity:0.5;transform:scale(0.95)}
 .dock-sep{width:1px;height:24px;background:var(--line);margin:0 4px;opacity:0.6}
+
+/* DOCK SUBMENU */
+.dock-btn-group{position:relative}
+.dock-submenu-trigger::after{content:'▼';margin-left:4px;font-size:10px;transition:transform .25s cubic-bezier(.34,.69,.66,1)}
+.dock-submenu-trigger.open::after{transform:rotate(180deg)}
+.dock-submenu{position:absolute;bottom:100%;left:50%;transform:translateX(-50%) scale(0.95);opacity:0;pointer-events:none;margin-bottom:12px;background:var(--glass);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);border-radius:16px;border:1px solid var(--line);box-shadow:var(--shadow);padding:8px 0;min-width:160px;z-index:250;transition:all .25s cubic-bezier(.34,.69,.66,1)}
+.dock-submenu.open{opacity:1;pointer-events:auto;transform:translateX(-50%) scale(1)}
+.dock-submenu-item{display:flex;align-items:center;padding:10px 16px;color:var(--t2);font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.34,.69,.66,1)}
+.dock-submenu-item:hover{background:var(--surface);color:var(--t1)}
+.dock-submenu-item.on{background:var(--surface2);color:var(--t1)}
 
 /* COMPONENTS */
 .sec-title{font-size:13px;text-transform:uppercase;letter-spacing:.8px;font-weight:700;color:var(--t3);margin:0 0 18px 4px;display:flex;align-items:center;gap:12px;opacity:.85}
@@ -196,9 +206,15 @@ input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 input[type="color"]{width:50px;height:40px;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:all .2s cubic-bezier(.34,.69,.66,1)}
 input[type="color"]:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(58,130,246,.15)}
 
+/* THEME MODE SELECTOR */
+.theme-mode-selector{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface);width:fit-content}
+.theme-mode-btn{flex:1;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;color:var(--t2);background:transparent;border:none;transition:all .2s cubic-bezier(.34,.69,.66,1);min-width:60px;text-align:center}
+.theme-mode-btn:hover{color:var(--t1);background:rgba(255,255,255,.05)}
+.theme-mode-btn.active{background:var(--accent);color:#fff;border:none}
+
 /* STOCKS DROPDOWN */
-#stocks-dropdown{position:fixed;bottom:120px;left:50%;transform:translateX(-50%) translateY(16px) scale(.95);width:340px;background:var(--glass2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);z-index:150;opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,.69,.66,1);max-height:500px;display:flex;flex-direction:column}
-#stocks-dropdown.open{transform:translateX(-50%) translateY(0) scale(1);opacity:1;pointer-events:auto}
+#stocks-dropdown{position:fixed;bottom:120px;left:50%;margin-left:-170px;width:340px;background:var(--glass2);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);z-index:150;transform:translateY(16px) scale(.95);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,.69,.66,1);max-height:500px;display:flex;flex-direction:column}
+#stocks-dropdown.open{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
 .stocks-dropdown-header{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:8px}
 .stocks-dropdown-header input{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--t1);font-size:14px;font-family:var(--f);outline:none;transition:all .2s cubic-bezier(.34,.69,.66,1);text-transform:uppercase}
 .stocks-dropdown-header input:hover{border-color:var(--line2);background:rgba(255,255,255,.08)}
@@ -244,7 +260,1195 @@ input[type="color"]:hover{border-color:var(--line2);box-shadow:0 2px 8px rgba(58
 </head>
 <body>
 
-<!-- Full HTML content would go here - file is 78KB total -->
+<header id="header">
+  <div id="s-left">
+    <!-- Tesla T logo -->
+    <svg class="tesla-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 5.362l2.475-3.026s4.245.09 8.471 2.054c-1.082 1.636-3.231 2.438-3.231 2.438-.146-1.439-1.154-1.79-4.354-1.79L12 24 8.619 5.038c-3.18 0-4.207.35-4.353 1.79 0 0-2.15-.803-3.231-2.438C5.26 2.427 9.524 2.336 9.524 2.336L12 5.362l-.001.001H12z"/>
+    </svg>
+    <div id="s-time">--:--</div>
+    <div id="s-date">———</div>
+  </div>
+  <div id="s-right">
+    <div id="stock-widget">
+      <span class="stk-label">XEQT.TO</span>
+      <a href="https://finance.yahoo.com/quote/XEQT.TO/" target="_blank" rel="noopener" id="stk-px" style="color:var(--t1)">Loading...</a>
+      <span id="stk-chg" style="font-size:15px">—</span>
+    </div>
+    <div id="weather-widget">
+      <span class="w-temp">--°C</span>
+      <span class="w-icon">☀️</span>
+    </div>
+  </div>
+</header>
 
+<main id="main">
+
+  <!-- LIVE PANEL -->
+  <section class="panel on" id="p-live">
+    <div class="split">
+      <div>
+        <div class="sec-title"><div class="live-dot"></div> Live News
+          <div class="news-tabs">
+            <button class="ntab on" data-news="local">Local</button>
+            <button class="ntab" data-news="national">National</button>
+            <button class="ntab" data-news="world">World</button>
+          </div>
+        </div>
+        <div class="feed-box h-news" id="news-feed">
+          <div class="muted">Loading News…</div>
+        </div>
+      </div>
+      <div class="col">
+        <div>
+          <div class="sec-title">🏈 Fantasy Leagues</div>
+          <div class="cardgroup" style="margin-bottom:0">
+            <a class="row" href="https://sleeper.com" target="_blank" rel="noopener" style="min-height:64px;padding:14px 20px">
+              <div class="appicon ic-sleeper" style="width:44px;height:44px;border-radius:12px">
+                <svg viewBox="0 0 24 24" fill="#13C4A3" style="width:24px;height:24px"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
+              </div>
+              <div class="rl"><div class="rl-t" style="font-size:17px">Sleeper</div></div>
+              <span class="chev">›</span>
+            </a>
+            <a class="row" href="https://sports.yahoo.com/fantasy/" target="_blank" rel="noopener" style="min-height:64px;padding:14px 20px">
+              <div class="appicon ic-yahoo" style="width:44px;height:44px;border-radius:12px">
+                <svg viewBox="0 0 24 24" fill="#fff" style="width:24px;height:24px"><path d="M21.9 4.3L13.8 22H9.6L4.7 9.4l4.6-.6 2.8 8.1 4.5-12.6z"/></svg>
+              </div>
+              <div class="rl"><div class="rl-t" style="font-size:17px">Yahoo Fantasy</div></div>
+              <span class="chev">›</span>
+            </a>
+          </div>
+        </div>
+        <div>
+          <div class="sec-title"><div class="live-dot"></div> My Teams</div>
+          <div class="feed-box h-scores" id="scores-feed">
+            <div class="muted">Loading Scores…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SPORTS NEWS PANEL -->
+  <section class="panel" id="p-sports">
+    <div class="sec-title"><div class="live-dot"></div> Sports News</div>
+    <div class="feed-box h-sports" id="sports-feed">
+      <div class="muted">Loading Sports News…</div>
+    </div>
+  </section>
+
+  <!-- MESSAGES PANEL -->
+  <section class="panel" id="p-msg">
+    <div class="sec-title">Messaging Hub</div>
+    <div class="split">
+      <div class="cardgroup">
+        <a class="row" href="https://web.whatsapp.com" target="_blank" rel="noopener">
+          <div class="appicon ic-wa"><svg viewBox="0 0 24 24" fill="#fff"><path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.69.62.71.23 1.36.2 1.87.12.57-.08 1.76-.72 2.01-1.41.25-.69.25-1.29.17-1.41-.07-.12-.27-.2-.57-.35m-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37A9.86 9.86 0 0 1 2.16 11.9c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9A9.82 9.82 0 0 1 21.93 11.9c0 5.45-4.44 9.88-9.89 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45h.01c6.55 0 11.89-5.34 11.89-11.89a11.82 11.82 0 0 0-3.48-8.41Z"/></svg></div>
+          <div class="rl"><div class="rl-t">WhatsApp</div><div class="rl-s">Secure chats</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://web.telegram.org" target="_blank" rel="noopener">
+          <div class="appicon ic-tg"><svg viewBox="0 0 24 24" fill="#fff"><path d="M11.94 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.06 0zm4.96 7.22c.1 0 .32.02.47.14a.5.5 0 0 1 .17.33c.02.09.04.3.02.47-.18 1.9-.96 6.5-1.36 8.63-.17.9-.5 1.2-.82 1.23-.7.06-1.23-.46-1.9-.9-1.06-.69-1.65-1.12-2.68-1.8-1.18-.78-.42-1.21.26-1.91.18-.18 3.25-2.98 3.31-3.23.01-.03.01-.15-.06-.21s-.17-.04-.25-.02c-.1.02-1.79 1.14-5.06 3.34-.48.33-.91.49-1.3.48-.43-.01-1.25-.24-1.87-.44-.75-.25-1.35-.37-1.3-.79.03-.22.33-.44.89-.66 3.5-1.52 5.83-2.53 7-3.01 3.33-1.39 4.03-1.63 4.48-1.64z"/></svg></div>
+          <div class="rl"><div class="rl-t">Telegram</div><div class="rl-s">Cloud messenger</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+      <div class="cardgroup">
+        <a class="row" href="https://www.messenger.com" target="_blank" rel="noopener">
+          <div class="appicon ic-ms"><svg viewBox="0 0 24 24" fill="#fff"><path d="M.001 11.64C.001 4.95 5.241 0 12 0s12 4.95 12 11.64c0 6.69-5.241 11.64-12 11.64-1.214 0-2.379-.16-3.473-.46a.96.96 0 0 0-.641.05l-2.379 1.05a.96.96 0 0 1-1.348-.85l-.065-2.13a.96.96 0 0 0-.322-.68C1.07 17.52.001 14.74.001 11.64zm8.32-2.19l-3.525 5.59c-.338.54.322 1.18.832.81l3.787-2.87a.72.72 0 0 1 .866 0l2.804 2.1a1.8 1.8 0 0 0 2.6-.48l3.525-5.59c.338-.54-.322-1.18-.832-.81l-3.787 2.87a.72.72 0 0 1-.866 0L11.92 8.97a1.8 1.8 0 0 0-2.6.48z"/></svg></div>
+          <div class="rl"><div class="rl-t">Messenger</div><div class="rl-s">Facebook chats</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://mail.google.com" target="_blank" rel="noopener">
+          <div class="appicon ic-gm"><svg viewBox="0 0 48 48"><path fill="#4caf50" d="M45 16.2l-5 2.75-5 4.75L35 40h7c1.657 0 3-1.343 3-3V16.2z"/><path fill="#1e88e5" d="M3 16.2l3.614 1.71L13 23.7V40H6c-1.657 0-3-1.343-3-3V16.2z"/><polygon fill="#e53935" points="35,11.2 24,19.45 13,11.2 12,17 13,23.7 24,31.95 35,23.7 36,17"/><path fill="#c62828" d="M3 12.298V16.2l10 7.5V11.2L9.876 8.859C9.132 8.301 8.228 8 7.298 8 4.924 8 3 9.924 3 12.298z"/><path fill="#fbc02d" d="M45 12.298V16.2l-10 7.5V11.2l3.124-2.341C38.868 8.301 39.772 8 40.702 8 43.076 8 45 9.924 45 12.298z"/></svg></div>
+          <div class="rl"><div class="rl-t">Gmail</div><div class="rl-s">Google Mail</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- APPLE PANEL -->
+  <section class="panel" id="p-apple">
+    <div class="sec-title">Apple Ecosystem</div>
+    <div class="split">
+      <div class="cardgroup">
+        <a class="row" href="https://www.icloud.com/photos" target="_blank" rel="noopener">
+          <div class="appicon ic-photos"><svg viewBox="0 0 48 48"><g transform="translate(24,24)"><ellipse rx="5.5" ry="10" cy="-8.5" fill="#FBC02D" opacity=".85" transform="rotate(0)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#7CB342" opacity=".85" transform="rotate(45)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#26C6DA" opacity=".85" transform="rotate(90)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#29A6F4" opacity=".85" transform="rotate(135)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#5C6BC0" opacity=".85" transform="rotate(180)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#AB47BC" opacity=".85" transform="rotate(225)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#EC407A" opacity=".85" transform="rotate(270)"/><ellipse rx="5.5" ry="10" cy="-8.5" fill="#F57C00" opacity=".85" transform="rotate(315)"/></g></svg></div>
+          <div class="rl"><div class="rl-t">Photos</div><div class="rl-s">Photo library</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://www.icloud.com/notes" target="_blank" rel="noopener">
+          <div class="appicon ic-notes"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2.5" fill="#fff" stroke="#EAEAEA" stroke-width=".6"/><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5V7.5H4z" fill="#FFC93C"/><g stroke="#C7C7CC" stroke-width="1.4" stroke-linecap="round"><line x1="7.5" y1="11.5" x2="16.5" y2="11.5"/><line x1="7.5" y1="14.5" x2="16.5" y2="14.5"/><line x1="7.5" y1="17.5" x2="13" y2="17.5"/></g></svg></div>
+          <div class="rl"><div class="rl-t">Notes</div><div class="rl-s">iCloud Notes</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+      <div class="cardgroup">
+        <a class="row" href="https://www.icloud.com/reminders" target="_blank" rel="noopener">
+          <div class="appicon ic-remind"><svg viewBox="0 0 24 24"><circle cx="6" cy="7" r="2.3" fill="#FF3B30"/><circle cx="6" cy="12.5" r="2.3" fill="#FF9500"/><circle cx="6" cy="18" r="2.3" fill="#007AFF"/><g stroke="#D2D2D7" stroke-width="1.6" stroke-linecap="round"><line x1="10.5" y1="7" x2="19" y2="7"/><line x1="10.5" y1="12.5" x2="19" y2="12.5"/><line x1="10.5" y1="18" x2="16" y2="18"/></g></svg></div>
+          <div class="rl"><div class="rl-t">Reminders</div><div class="rl-s">To-do lists</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://www.icloud.com/iclouddrive" target="_blank" rel="noopener">
+          <div class="appicon ic-drive"><svg viewBox="0 0 24 24" fill="#fff"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.99 5.99 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg></div>
+          <div class="rl"><div class="rl-t">Files</div><div class="rl-s">iCloud Drive</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CAPTURE + CALCULATOR PANEL -->
+  <section class="panel" id="p-cap">
+    <div class="split">
+      <div>
+        <div class="sec-title">Quick Capture</div>
+        <textarea class="capbox" id="cap-input" placeholder="Type or dictate a thought..."></textarea>
+        <div class="capbtns">
+          <button class="btn btn-pri" onclick="saveNote()">Save Note</button>
+          <button class="btn btn-gh" onclick="document.getElementById('cap-input').value=''">Clear</button>
+          <button class="btn btn-gh btn-voice" id="voice-btn" onclick="toggleVoice()">🎤 Dictate</button>
+        </div>
+        <div class="sec-title" style="margin-top:28px">Saved Thoughts</div>
+        <div class="cardgroup" id="notes-list"></div>
+      </div>
+      <div>
+        <div class="sec-title">🔢 Calculator</div>
+        <div class="calc-wrap">
+          <div class="calc-display">
+            <div class="calc-expr" id="calc-expr"></div>
+            <div class="calc-val" id="calc-val">0</div>
+          </div>
+          <div class="calc-grid">
+            <button class="calc-key calc-fn" onclick="calcClear()">C</button>
+            <button class="calc-key calc-fn" onclick="calcToggle()">±</button>
+            <button class="calc-key calc-fn" onclick="calcPercent()">%</button>
+            <button class="calc-key calc-op" onclick="calcOp('/')">÷</button>
+            <button class="calc-key calc-num" onclick="calcNum('7')">7</button>
+            <button class="calc-key calc-num" onclick="calcNum('8')">8</button>
+            <button class="calc-key calc-num" onclick="calcNum('9')">9</button>
+            <button class="calc-key calc-op" onclick="calcOp('*')">×</button>
+            <button class="calc-key calc-num" onclick="calcNum('4')">4</button>
+            <button class="calc-key calc-num" onclick="calcNum('5')">5</button>
+            <button class="calc-key calc-num" onclick="calcNum('6')">6</button>
+            <button class="calc-key calc-op" onclick="calcOp('-')">−</button>
+            <button class="calc-key calc-num" onclick="calcNum('1')">1</button>
+            <button class="calc-key calc-num" onclick="calcNum('2')">2</button>
+            <button class="calc-key calc-num" onclick="calcNum('3')">3</button>
+            <button class="calc-key calc-op" onclick="calcOp('+')">+</button>
+            <button class="calc-key calc-num calc-zero" onclick="calcNum('0')">0</button>
+            <button class="calc-key calc-num" onclick="calcDot()">.</button>
+            <button class="calc-key calc-eq" onclick="calcEqual()">=</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STREAMING PANEL -->
+  <section class="panel" id="p-stream">
+    <div class="sec-title">Theater Mode</div>
+    <div class="split">
+      <div class="cardgroup">
+        <a class="row" href="https://www.crave.ca" target="_blank" rel="noopener">
+          <div class="appicon ic-crave"><svg viewBox="0 0 24 24" fill="#fff"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg></div>
+          <div class="rl"><div class="rl-t">Crave</div><div class="rl-s">HBO & Movies</div></div>
+          <span class="chev">›</span>
+        </a>
+        <a class="row" href="https://www.telustvplus.com" target="_blank" rel="noopener">
+          <div class="appicon ic-telus"><svg viewBox="0 0 24 24" fill="#fff"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3a4.237 4.237 0 0 0-6 0zm-4-4l2 2a7.074 7.074 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></div>
+          <div class="rl"><div class="rl-t">Telus TV+</div><div class="rl-s">Live TV & On Demand</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+      <div class="cardgroup">
+        <a class="row" href="https://tv.apple.com" target="_blank" rel="noopener">
+          <div class="appicon ic-appletv"><svg viewBox="0 0 24 24" fill="#fff"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg></div>
+          <div class="rl"><div class="rl-t">Apple TV+</div><div class="rl-s">Apple Originals</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEARNING PANEL -->
+  <section class="panel" id="p-learn">
+    <div class="sec-title">Learning</div>
+    <div class="split">
+      <div class="cardgroup">
+        <a class="row" href="https://notebooklm.google.com" target="_blank" rel="noopener">
+          <div class="appicon ic-nlm"><svg viewBox="0 1.14 174.56 127.99"><path fill="#fff" d="M87.27,1.14C39.07,1.14,0,39.88,0,87.69v41.44h16.09v-4.13c0-19.39,15.84-35.11,35.39-35.11s35.39,15.72,35.39,35.11v4.13h16.09v-4.13c0-28.2-23.05-51.05-51.48-51.05-11.07,0-21.32,3.46-29.72,9.37,8.79-17.32,26.88-29.21,47.77-29.21,29.51,0,53.44,23.74,53.44,53v22.02h16.09v-22.02c0-38.08-31.13-68.96-69.53-68.96-17.27,0-33.06,6.24-45.22,16.58,11.94-22.39,35.65-37.64,62.97-37.64,39.32,0,71.19,31.61,71.19,70.6v41.44h16.09v-41.44C174.55,39.88,135.48,1.14,87.27,1.14Z"/></svg></div>
+          <div class="rl"><div class="rl-t">NotebookLM</div><div class="rl-s">AI research notebook</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+      <div class="cardgroup">
+        <a class="row" href="https://www.openevidence.com" target="_blank" rel="noopener">
+          <div class="appicon ic-oe"><svg viewBox="0 0 56 56"><text x="28" y="38" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="30" font-weight="700" fill="#fff">&#338;</text></svg></div>
+          <div class="rl"><div class="rl-t">OpenEvidence</div><div class="rl-s">Medical AI search</div></div>
+          <span class="chev">›</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SETTINGS PANEL -->
+  <section class="panel" id="p-set">
+    <div class="sec-title">Appearance</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Theme Mode</div><div class="set-s">Choose your preferred appearance</div></div>
+        <div class="theme-mode-selector" id="theme-mode-selector">
+          <button class="theme-mode-btn" data-theme-mode="light" aria-label="Light theme">Light</button>
+          <button class="theme-mode-btn" data-theme-mode="dark" aria-label="Dark theme">Dark</button>
+          <button class="theme-mode-btn" data-theme-mode="auto" aria-label="Auto theme">Auto</button>
+        </div>
+      </div>
+    </div>
+    <div class="sec-title">Color & Presets</div>
+    <div class="set-group">
+      <div class="set-row col-dir">
+        <div class="set-label" style="width:100%"><div class="set-t">Theme Presets</div><div class="set-s">Choose a color theme</div></div>
+        <div class="theme-presets" id="theme-presets">
+          <button class="theme-preset on" data-theme-preset="default">Default<br><span style="font-size:10px">Blue</span></button>
+          <button class="theme-preset" data-theme-preset="cyberpunk">Cyberpunk<br><span style="font-size:10px">Neon</span></button>
+          <button class="theme-preset" data-theme-preset="sunset">Sunset<br><span style="font-size:10px">Warm</span></button>
+          <button class="theme-preset" data-theme-preset="forest">Forest<br><span style="font-size:10px">Green</span></button>
+          <button class="theme-preset" data-theme-preset="lavender">Lavender<br><span style="font-size:10px">Purple</span></button>
+        </div>
+      </div>
+      <div class="set-row col-dir">
+        <div class="set-label" style="width:100%"><div class="set-t">Custom Accent</div><div class="set-s">Pick any color for accents</div></div>
+        <div class="color-picker-wrap">
+          <input type="color" id="accent-picker" value="#3a82f6" aria-label="Custom accent color">
+          <span style="font-size:13px;color:var(--t3)">or choose a preset</span>
+        </div>
+      </div>
+    </div>
+    <div class="sec-title">Modules</div>
+    <div class="set-group">
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Sports News</div><div class="set-s">Live sports headlines</div></div>
+        <button class="toggle" data-set="sports" aria-label="Toggle Sports module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Messages</div><div class="set-s">Messaging hub shortcuts</div></div>
+        <button class="toggle" data-set="msg" aria-label="Toggle Messages module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Apple</div><div class="set-s">Apple ecosystem shortcuts</div></div>
+        <button class="toggle" data-set="apple" aria-label="Toggle Apple module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Capture</div><div class="set-s">Quick notes & calculator</div></div>
+        <button class="toggle" data-set="cap" aria-label="Toggle Capture module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Streaming</div><div class="set-s">Theater mode shortcuts</div></div>
+        <button class="toggle" data-set="stream" aria-label="Toggle Streaming module"></button>
+      </div>
+      <div class="set-row">
+        <div class="set-label"><div class="set-t">Learning</div><div class="set-s">Research & learning tools</div></div>
+        <button class="toggle" data-set="learn" aria-label="Toggle Learning module"></button>
+      </div>
+    </div>
+    <button class="btn btn-gh" onclick="resetSettings()">Reset to defaults</button>
+  </section>
+
+  <!-- BOOKMARKS PANEL -->
+  <section class="panel" id="p-saved">
+    <div class="sec-title">📌 Saved Articles</div>
+    <div class="cardgroup" id="bookmarks-list"><div class="muted">No saved articles yet. Click the bookmark icon on any story.</div></div>
+  </section>
+
+  <!-- TASKS/TODO PANEL -->
+  <section class="panel" id="p-tasks">
+    <div class="sec-title">✓ Tasks</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="task-input" placeholder="Add a new task..." class="capbox" style="min-height:50px;margin-bottom:10px">
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-pri" onclick="addTask()">Add Task</button>
+        <button class="btn btn-gh" onclick="clearCompletedTasks()">Clear Done</button>
+      </div>
+      <div style="margin-top:14px;font-size:13px;color:var(--t3)" id="task-count"></div>
+    </div>
+    <div class="cardgroup" id="tasks-list"><div class="muted">No tasks. Add one to get started!</div></div>
+  </section>
+
+  <!-- WEATHER FORECAST PANEL -->
+  <section class="panel" id="p-weather">
+    <div class="sec-title">🌤️ 7-Day Forecast</div>
+    <div id="forecast-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+      <div class="muted">Loading forecast...</div>
+    </div>
+  </section>
+
+  <!-- QUICK LINKS PANEL -->
+  <section class="panel" id="p-links">
+    <div class="sec-title">🔗 Quick Links</div>
+    <div style="margin-bottom:24px">
+      <input type="text" id="link-title" placeholder="Link title" class="capbox" style="min-height:45px;margin-bottom:8px">
+      <input type="url" id="link-url" placeholder="https://example.com" class="capbox" style="min-height:45px;margin-bottom:10px">
+      <button class="btn btn-pri" onclick="addLink()">Add Link</button>
+    </div>
+    <div class="split" id="links-list"><div class="muted">No links yet. Add your favorites!</div></div>
+  </section>
+
+</main>
+
+<nav id="dock">
+  <button class="dock-btn on" data-p="live" draggable="true">Live</button>
+  <button class="dock-btn" data-p="msg" draggable="true">Messages</button>
+  <div class="dock-btn-group">
+    <button class="dock-btn dock-submenu-trigger" id="dock-more-btn" aria-label="More menu" aria-expanded="false">More</button>
+    <div class="dock-submenu" id="dock-submenu">
+      <button class="dock-submenu-item" data-p="sports">Sports</button>
+      <button class="dock-submenu-item" data-p="apple">Apple</button>
+      <button class="dock-submenu-item" data-p="cap">Capture</button>
+      <button class="dock-submenu-item" data-p="stream">Streaming</button>
+      <button class="dock-submenu-item" data-p="learn">Learning</button>
+      <button class="dock-submenu-item" data-p="saved">Saved</button>
+      <button class="dock-submenu-item" data-p="tasks">Tasks</button>
+      <button class="dock-submenu-item" data-p="stocks">Stocks</button>
+      <button class="dock-submenu-item" data-p="weather">Weather</button>
+      <button class="dock-submenu-item" data-p="links">Links</button>
+    </div>
+  </div>
+  <button class="dock-btn" data-p="set" draggable="true" aria-label="Settings">⚙</button>
+</nav>
+
+<div id="stocks-dropdown">
+  <div class="stocks-dropdown-header">
+    <input type="text" id="stocks-dropdown-input" placeholder="Add ticker (e.g., AAPL)" style="text-transform:uppercase">
+    <button onclick="addStock()">Add</button>
+  </div>
+  <div class="stocks-dropdown-list" id="stocks-dropdown-list">
+    <div class="muted" style="padding:20px;text-align:center;font-size:13px">No stocks yet</div>
+  </div>
+  <div class="stocks-dropdown-footer">Click stock name to view details</div>
+</div>
+
+<script>
+// ── VARIABLES (declared early to avoid undefined reference errors) ──
+var SETTINGS_KEY = 'dash_settings_v1';
+var defaultSettings = {theme:'dark', themeMode:'manual', modules:{sports:true, msg:true, apple:true, cap:true, stream:true, learn:true}};
+var settings;
+var themePresets = {default: {accent:'#3a82f6'}, cyberpunk: {accent:'#ff006e'}, sunset: {accent:'#ff6b35'}, forest: {accent:'#22c55e'}, lavender: {accent:'#a78bfa'}};
+var draggedBtn = null;
+var bookmarks = [];
+var tasks = [];
+var watchlist = [];
+var quickLinks = [];
+var currentFeed = [];
+var RSS = 'https://api.rss2json.com/v1/api.json?rss_url=';
+var newsCategories = {};
+var calcCur = '0', calcPrev = '', calcOperator = '', calcReset = false;
+var notes = [];
+var rec = null, isRec = false;
+
+// Initialize settings from localStorage
+try { settings = JSON.parse(localStorage.getItem(SETTINGS_KEY)); } catch(e) {}
+if (!settings || typeof settings !== 'object') settings = JSON.parse(JSON.stringify(defaultSettings));
+if (!settings.modules) settings.modules = JSON.parse(JSON.stringify(defaultSettings.modules));
+if (!settings.themeMode) settings.themeMode = 'manual';
+
+// ── CLOCK (syncs to minute boundary) ──
+function updateClock() {
+  var d = new Date();
+  var h = d.getHours() % 12 || 12;
+  var m = String(d.getMinutes()).padStart(2, '0');
+  document.getElementById('s-time').textContent = h + ':' + m + ' ' + (d.getHours() >= 12 ? 'PM' : 'AM');
+  document.getElementById('s-date').textContent = d.toLocaleDateString('en-CA', {weekday:'short', month:'short', day:'numeric'});
+  if (settings.themeMode === 'auto') {
+    fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=is_day', 'wx_isday', 15)
+      .then(function(data) {
+        if (data && data.current) {
+          var isDay = data.current.is_day === 1;
+          var newTheme = isDay ? 'light' : 'dark';
+          if (settings.theme !== newTheme) {
+            settings.theme = newTheme;
+            saveSettings();
+            applyTheme();
+          }
+        }
+      });
+  }
+}
+(function tickClock() {
+  updateClock();
+  setTimeout(tickClock, (60 - new Date().getSeconds()) * 1000 + 50);
+})();
+
+// ── DOCK ──
+function goPanel(p) {
+  document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('on'); });
+  document.querySelectorAll('.dock-submenu-item').forEach(function(b) { b.classList.remove('on'); });
+  document.querySelectorAll('.panel').forEach(function(pn) { pn.classList.remove('on'); });
+  var btn = document.querySelector('.dock-btn[data-p="' + p + '"]');
+  if (btn) btn.classList.add('on');
+  var submenuItem = document.querySelector('.dock-submenu-item[data-p="' + p + '"]');
+  if (submenuItem) submenuItem.classList.add('on');
+  var panel = document.getElementById('p-' + p);
+  if (panel) panel.classList.add('on');
+  document.getElementById('main').scrollTop = 0;
+  closeDockSubmenu();
+}
+function toggleDockSubmenu() {
+  var submenu = document.getElementById('dock-submenu');
+  var trigger = document.getElementById('dock-more-btn');
+  submenu.classList.toggle('open');
+  trigger.classList.toggle('open');
+  trigger.setAttribute('aria-expanded', submenu.classList.contains('open'));
+}
+function closeDockSubmenu() {
+  var submenu = document.getElementById('dock-submenu');
+  var trigger = document.getElementById('dock-more-btn');
+  submenu.classList.remove('open');
+  trigger.classList.remove('open');
+  trigger.setAttribute('aria-expanded', 'false');
+}
+document.getElementById('dock-more-btn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  toggleDockSubmenu();
+});
+document.querySelectorAll('.dock-submenu-item').forEach(function(item) {
+  item.addEventListener('click', function() {
+    if (item.dataset.p === 'stocks') {
+      toggleStocksDropdown();
+    } else {
+      goPanel(item.dataset.p);
+    }
+  });
+});
+function toggleStocksDropdown() {
+  var dropdown = document.getElementById('stocks-dropdown');
+  dropdown.classList.toggle('open');
+  if (dropdown.classList.contains('open')) {
+    document.getElementById('stocks-dropdown-input').focus();
+    fetchStocks();
+  }
+}
+document.querySelectorAll('.dock-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    if (btn.dataset.p === 'stocks') {
+      toggleStocksDropdown();
+    } else {
+      goPanel(btn.dataset.p);
+    }
+  });
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.dock-btn-group')) {
+    closeDockSubmenu();
+  }
+});
+
+// ── SETTINGS (theme + module visibility, persisted) ──
+
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch(e) {} }
+function applyTheme() {
+  document.documentElement.classList.toggle('light', settings.theme === 'light');
+  var m = document.querySelector('meta[name="theme-color"]');
+  if (m) m.setAttribute('content', settings.theme === 'light' ? '#f2f2f7' : '#000000');
+}
+function applyModules() {
+  Object.keys(defaultSettings.modules).forEach(function(k) {
+    var btn = document.querySelector('.dock-btn[data-p="' + k + '"]') || document.querySelector('.dock-submenu-item[data-p="' + k + '"]');
+    if (btn) btn.style.display = settings.modules[k] === false ? 'none' : '';
+  });
+  var active = document.querySelector('.panel.on');
+  if (active) {
+    var id = active.id.slice(2);
+    if (settings.modules[id] === false) goPanel('live');
+  }
+}
+function syncToggles() {
+  document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
+    var k = t.dataset.set;
+    var on = k === 'theme' ? false : settings.modules[k] !== false;
+    t.classList.toggle('on', on);
+  });
+  syncThemeModeButtons();
+}
+// ── THEME PRESETS ──
+function applyColors() {
+  try {
+    var accent = settings.accentColor || themePresets.default.accent;
+    document.documentElement.style.setProperty('--accent', accent);
+    var picker = document.getElementById('accent-picker');
+    if (picker) picker.value = accent;
+    var presets = document.querySelectorAll('.theme-preset');
+    presets.forEach(function(p) { p.classList.remove('on'); });
+    var preset = document.querySelector('.theme-preset[data-theme-preset="' + (settings.themePreset || 'default') + '"]');
+    if (preset) preset.classList.add('on');
+  } catch(e) { console.warn('applyColors error:', e); }
+}
+function resetSettings() {
+  settings = JSON.parse(JSON.stringify(defaultSettings));
+  settings.themePreset = 'default';
+  settings.accentColor = themePresets.default.accent;
+  settings.themeMode = 'manual';
+  settings.dockOrder = null;
+  saveDockOrder();
+  saveSettings(); applyTheme(); applyModules(); syncToggles(); applyColors(); applyDockOrder(); initDragAndDrop();
+}
+document.querySelectorAll('.toggle[data-set]').forEach(function(t) {
+  t.addEventListener('click', function() {
+    var k = t.dataset.set;
+    if (k !== 'theme') { settings.modules[k] = settings.modules[k] === false; applyModules(); saveSettings(); syncToggles(); }
+  });
+});
+
+document.querySelectorAll('.theme-mode-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var mode = btn.dataset.themeMode;
+    if (mode === 'light' || mode === 'dark') {
+      settings.themeMode = 'manual';
+      settings.theme = mode;
+    } else if (mode === 'auto') {
+      settings.themeMode = 'auto';
+    }
+    applyTheme(); syncThemeModeButtons(); saveSettings();
+  });
+});
+
+function syncThemeModeButtons() {
+  document.querySelectorAll('.theme-mode-btn').forEach(function(btn) {
+    var mode = btn.dataset.themeMode;
+    var isActive = (mode === 'auto' && settings.themeMode === 'auto') || (mode === settings.theme && settings.themeMode === 'manual');
+    btn.classList.toggle('active', isActive);
+  });
+}
+document.querySelectorAll('.theme-preset').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var preset = btn.dataset.themePreset;
+    settings.themePreset = preset;
+    settings.accentColor = themePresets[preset].accent;
+    saveSettings(); applyColors();
+  });
+});
+document.getElementById('accent-picker').addEventListener('input', function(e) {
+  settings.accentColor = e.target.value;
+  settings.themePreset = 'custom';
+  saveSettings(); applyColors();
+});
+
+// ── DOCK REORDERING ──
+function saveDockOrder() {
+  var order = Array.from(document.querySelectorAll('.dock-btn[data-p]')).map(function(b) { return b.dataset.p; });
+  try { localStorage.setItem('dock_order_v1', JSON.stringify(order)); } catch(e) {}
+}
+function applyDockOrder() {
+  try {
+    var order = JSON.parse(localStorage.getItem('dock_order_v1'));
+    if (!order || !Array.isArray(order)) return;
+    var dock = document.getElementById('dock');
+    var btns = {};
+    dock.querySelectorAll('.dock-btn[data-p]').forEach(function(b) { btns[b.dataset.p] = b; });
+    var seps = Array.from(dock.children).filter(function(c) { return c.classList && c.classList.contains('dock-sep'); });
+    dock.innerHTML = '';
+    order.forEach(function(p) {
+      if (btns[p]) dock.appendChild(btns[p]);
+      else if (p === 'sep' && seps.length > 0) dock.appendChild(seps.shift());
+    });
+  } catch(e) {}
+}
+function initDragAndDrop() {
+  console.log('Initializing drag handlers for', document.querySelectorAll('.dock-btn').length, 'buttons');
+  document.querySelectorAll('.dock-btn').forEach(function(btn) {
+    btn.addEventListener('dragstart', function(e) {
+      console.log('dragstart:', btn.textContent);
+      draggedBtn = btn;
+      btn.style.opacity = '0.5';
+      e.dataTransfer.setData('text/html', btn.innerHTML);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    btn.addEventListener('dragend', function(e) {
+      console.log('dragend');
+      document.querySelectorAll('.dock-btn').forEach(function(b) { b.classList.remove('drag-over'); b.style.opacity = ''; });
+      draggedBtn = null;
+    });
+    btn.addEventListener('dragover', function(e) {
+      if (draggedBtn && btn !== draggedBtn) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        btn.classList.add('drag-over');
+        var dock = document.getElementById('dock');
+        var allBtns = Array.from(dock.querySelectorAll('.dock-btn'));
+        var dragIdx = allBtns.indexOf(draggedBtn);
+        var dropIdx = allBtns.indexOf(btn);
+        if (dragIdx < dropIdx) {
+          btn.parentNode.insertBefore(draggedBtn, btn.nextSibling);
+        } else {
+          btn.parentNode.insertBefore(draggedBtn, btn);
+        }
+      }
+    });
+    btn.addEventListener('dragleave', function(e) {
+      btn.classList.remove('drag-over');
+    });
+    btn.addEventListener('drop', function(e) {
+      e.preventDefault();
+      console.log('drop');
+      saveDockOrder();
+    });
+  });
+}
+
+try {
+  console.log('Starting initialization...');
+  applyTheme(); console.log('✓ applyTheme');
+  applyModules(); console.log('✓ applyModules');
+  syncToggles(); console.log('✓ syncToggles');
+  applyColors(); console.log('✓ applyColors');
+  applyDockOrder(); console.log('✓ applyDockOrder');
+  initDragAndDrop(); console.log('✓ initDragAndDrop');
+} catch(e) { console.error('Init error:', e.message); }
+
+// ── BOOKMARKS ──
+try { bookmarks = JSON.parse(localStorage.getItem('bookmarks_v1') || '[]'); } catch(e) { bookmarks = []; }
+function saveBookmark(title, link, source) {
+  if (!title || !link || !isValidUrl(link)) return false;
+  var exists = bookmarks.findIndex(function(b) { return b.link === link; });
+  if (exists >= 0) {
+    bookmarks.splice(exists, 1);
+  } else {
+    bookmarks.unshift({title: title, link: link, source: source, date: new Date().toLocaleDateString()});
+    if (bookmarks.length > 100) bookmarks = bookmarks.slice(0, 100);
+  }
+  try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+  renderBookmarks();
+  renderFeed(currentFeed || [], 'news-feed');
+  return true;
+}
+function deleteBookmark(idx) {
+  if (idx >= 0 && idx < bookmarks.length) {
+    bookmarks.splice(idx, 1);
+    try { localStorage.setItem('bookmarks_v1', JSON.stringify(bookmarks)); } catch(e) {}
+    renderBookmarks();
+  }
+}
+function renderBookmarks() {
+  var el = document.getElementById('bookmarks-list');
+  if (!bookmarks.length) { el.innerHTML = '<div class="muted">No saved articles. Tap the bookmark icon on any story.</div>'; return; }
+  var html = '';
+  bookmarks.forEach(function(b, i) {
+    html += '<div style="display:flex;align-items:stretch;gap:12px;padding:0;border:none">'
+      + '<a class="feed-item" href="' + escHtml(b.link) + '" target="_blank" rel="noopener" style="flex:1;padding:20px 24px">'
+      + '<div class="feed-t">' + escHtml(b.title) + '</div>'
+      + '<div class="feed-m"><span class="feed-src">' + escHtml(b.source) + '</span><span>' + b.date + '</span></div>'
+      + '</a>'
+      + '<button class="bookmark-btn saved" onclick="deleteBookmark(' + i + ')" title="Remove bookmark" style="border-left:1px solid var(--line)">' + createBookmarkSvg(true) + '</button>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── TASKS ──
+try { tasks = JSON.parse(localStorage.getItem('tasks_v1') || '[]'); } catch(e) { tasks = []; }
+function addTask() {
+  var inp = document.getElementById('task-input');
+  if (!inp.value.trim()) return;
+  if (inp.value.length > 500) { alert('Task too long (max 500 characters)'); return; }
+  if (tasks.length >= 200) { alert('Maximum 200 tasks'); return; }
+  tasks.push({text: inp.value.trim(), done: false, date: new Date().toLocaleDateString()});
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  inp.value = '';
+  renderTasks();
+}
+function toggleTask(idx) {
+  tasks[idx].done = !tasks[idx].done;
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function deleteTask(idx) {
+  tasks.splice(idx, 1);
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function clearCompletedTasks() {
+  tasks = tasks.filter(function(t) { return !t.done; });
+  try { localStorage.setItem('tasks_v1', JSON.stringify(tasks)); } catch(e) {}
+  renderTasks();
+}
+function renderTasks() {
+  var done = tasks.filter(function(t) { return t.done; }).length;
+  var total = tasks.length;
+  document.getElementById('task-count').textContent = done + ' of ' + total + ' completed';
+  var el = document.getElementById('tasks-list');
+  if (!total) { el.innerHTML = '<div class="muted">No tasks. Add one to get started!</div>'; return; }
+  var html = '';
+  tasks.forEach(function(t, i) {
+    html += '<div class="noterow" style="align-items:center">'
+      + '<input type="checkbox" onclick="toggleTask(' + i + ')" ' + (t.done ? 'checked' : '') + ' style="width:20px;height:20px;cursor:pointer">'
+      + '<div class="n-txt" style="' + (t.done ? 'text-decoration:line-through;opacity:0.6;' : '') + '">' + escHtml(t.text) + '</div>'
+      + '<button class="n-del" onclick="deleteTask(' + i + ')">×</button>'
+      + '</div>';
+  });
+  el.innerHTML = html;
+}
+
+// ── STOCKS WATCHLIST ──
+try { watchlist = JSON.parse(localStorage.getItem('stocks_watchlist_v1') || '[]'); } catch(e) { watchlist = []; }
+function addStock() {
+  var inp = document.getElementById('stocks-dropdown-input');
+  var sym = inp.value.trim().toUpperCase();
+  if (!sym || watchlist.includes(sym)) { inp.value = ''; return; }
+  if (!/^[A-Z]{1,5}(\.[A-Z]{2})?$/.test(sym)) { alert('Invalid ticker format'); inp.value = ''; return; }
+  watchlist.push(sym);
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  inp.value = '';
+  fetchStocks();
+}
+function deleteStock(sym) {
+  watchlist = watchlist.filter(function(s) { return s !== sym; });
+  try { localStorage.setItem('stocks_watchlist_v1', JSON.stringify(watchlist)); } catch(e) {}
+  fetchStocks();
+}
+function fetchStocks() {
+  var el = document.getElementById('stocks-dropdown-list');
+  if (!watchlist.length) { el.innerHTML = '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No stocks yet</div>'; return; }
+  el.innerHTML = '<div class="muted" style="padding:20px;text-align:center;font-size:13px">Loading prices...</div>';
+  Promise.all(watchlist.map(function(sym) {
+    return fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/' + sym + '?interval=1d&range=1d', 'stk_' + sym, 5);
+  })).then(function(results) {
+    var html = '';
+    watchlist.forEach(function(sym, i) {
+      var data = results[i];
+      if (data && data.chart && data.chart.result) {
+        var meta = data.chart.result[0].meta;
+        var px = parseFloat(meta.regularMarketPrice);
+        var prev = parseFloat(meta.chartPreviousClose);
+        var diff = px - prev;
+        var pct = ((diff / prev) * 100).toFixed(2);
+        var chgClass = diff >= 0 ? 'up' : 'down';
+        html += '<div class="stock-item">'
+          + '<a href="https://finance.yahoo.com/quote/' + sym + '/" target="_blank" rel="noopener" style="flex:1;min-width:0;color:inherit;text-decoration:none;cursor:pointer">'
+          + '<div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">$' + px.toFixed(2) + '</div></div>'
+          + '</a>'
+          + '<div class="stock-chg ' + chgClass + '">' + (diff >= 0 ? '+' : '') + pct + '%</div>'
+          + '<button class="stock-remove" onclick="deleteStock(\'' + sym + '\'); event.stopPropagation();">×</button>'
+          + '</div>';
+      } else {
+        html += '<div class="stock-item"><div class="stock-info"><div class="stock-sym">' + sym + '</div><div class="stock-px">Error loading</div></div></div>';
+      }
+    });
+    el.innerHTML = html || '<div class="muted" style="padding:20px;text-align:center;font-size:13px">No data</div>';
+  });
+}
+
+// ── WEATHER FORECAST ──
+function loadForecast() {
+  fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&daily=temperature_2m_max,temperature_2m_min,weather_code&timezone=auto', 'wx_forecast', 240)
+    .then(function(data) {
+      if (!data || !data.daily) return;
+      var html = '';
+      var now = new Date();
+      for (var i = 0; i < 7; i++) {
+        var date = new Date(now);
+        date.setDate(date.getDate() + i);
+        var code = data.daily.weather_code[i];
+        var emoji = code === 0 ? '☀️' : code <= 3 ? '⛅' : code <= 48 ? '🌫️' : code <= 67 ? '🌧️' : code <= 77 ? '❄️' : '⛈️';
+        var hi = Math.round(data.daily.temperature_2m_max[i]);
+        var lo = Math.round(data.daily.temperature_2m_min[i]);
+        var day = date.toLocaleDateString('en-US', {weekday:'short'});
+        html += '<div style="background:var(--glass2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center">'
+          + '<div style="font-size:14px;color:var(--t2);margin-bottom:6px">' + day + '</div>'
+          + '<div style="font-size:28px;margin:6px 0">' + emoji + '</div>'
+          + '<div style="font-size:13px;color:var(--t1)"><span style="color:var(--green)">' + hi + '°</span> / <span style="color:var(--t3)">' + lo + '°</span></div>'
+          + '</div>';
+      }
+      document.getElementById('forecast-list').innerHTML = html;
+    });
+}
+
+// ── QUICK LINKS ──
+try { quickLinks = JSON.parse(localStorage.getItem('quick_links_v1') || '[]'); } catch(e) { quickLinks = []; }
+function addLink() {
+  var title = document.getElementById('link-title').value.trim();
+  var url = document.getElementById('link-url').value.trim();
+  if (!title || !url) return;
+  if (!url.match(/^https?:\/\//)) url = 'https://' + url;
+  if (!isValidUrl(url)) { alert('Invalid URL'); return; }
+  quickLinks.push({title: title, url: url});
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  document.getElementById('link-title').value = '';
+  document.getElementById('link-url').value = '';
+  renderLinks();
+}
+function deleteLink(idx) {
+  quickLinks.splice(idx, 1);
+  try { localStorage.setItem('quick_links_v1', JSON.stringify(quickLinks)); } catch(e) {}
+  renderLinks();
+}
+function renderLinks() {
+  var el = document.getElementById('links-list');
+  if (!quickLinks.length) { el.innerHTML = '<div class="muted">No links yet. Add your favorites!</div>'; return; }
+  var html = '';
+  quickLinks.forEach(function(l, i) {
+    html += '<a href="' + escHtml(l.url) + '" target="_blank" rel="noopener" class="row" style="border-radius:var(--r);margin-bottom:10px;flex-direction:column;gap:0">'
+      + '<div style="font-weight:600;color:var(--accent)">' + escHtml(l.title) + '</div>'
+      + '<div style="font-size:12px;color:var(--t3);margin-top:4px">' + escHtml(l.url.replace(/^https?:\/\//,'')) + '</div>'
+      + '</a>'
+      + '<button class="btn btn-gh" style="width:100%;margin-bottom:10px;font-size:13px" onclick="deleteLink(' + i + ')">Delete</button>';
+  });
+  el.innerHTML = html;
+}
+
+renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
+
+// ── FETCH CACHED ──
+function fetchCached(url, key, ttlMin) {
+  try {
+    var cached = localStorage.getItem(key);
+    if (cached) {
+      var parsed = JSON.parse(cached);
+      if (Date.now() - parsed.t < (ttlMin || 15) * 60000) return Promise.resolve(parsed.data);
+    }
+  } catch(e) {}
+  return fetch(url).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  }).then(function(data) {
+    try { localStorage.setItem(key, JSON.stringify({t: Date.now(), data: data})); } catch(e) {}
+    return data;
+  }).catch(function(e) {
+    console.warn('Fetch failed for ' + key + ':', e);
+    return null;
+  });
+}
+
+// ── WEATHER + AUTO THEME ──
+fetchCached('https://api.open-meteo.com/v1/forecast?latitude=49.19&longitude=-122.85&current=temperature_2m,weather_code,is_day', 'wx', 15)
+.then(function(data) {
+  if (data && data.current) {
+    var c = data.current.weather_code;
+    var e = c === 0 ? '☀️' : c <= 3 ? '⛅' : c <= 48 ? '🌫️' : c <= 67 ? '🌧️' : c <= 77 ? '❄️' : '⛈️';
+    document.querySelector('.w-temp').textContent = Math.round(data.current.temperature_2m) + '°C';
+    document.querySelector('.w-icon').textContent = e;
+
+    if (settings.themeMode === 'auto') {
+      var isDay = data.current.is_day === 1;
+      var newTheme = isDay ? 'light' : 'dark';
+      if (settings.theme !== newTheme) {
+        settings.theme = newTheme;
+        saveSettings();
+        applyTheme();
+      }
+    }
+  }
+});
+
+// ── STOCK (XEQT) ──
+fetchCached('https://query2.finance.yahoo.com/v8/finance/chart/XEQT.TO?interval=1d&range=1d', 'stk_xeqt', 5)
+.then(function(data) {
+  if (data && data.chart && data.chart.result) {
+    var meta = data.chart.result[0].meta;
+    var px = parseFloat(meta.regularMarketPrice);
+    var prev = parseFloat(meta.chartPreviousClose);
+    var diff = px - prev;
+    var pct = ((diff / prev) * 100).toFixed(2);
+    document.getElementById('stk-px').textContent = '$' + px.toFixed(2);
+    var chgEl = document.getElementById('stk-chg');
+    chgEl.textContent = (diff >= 0 ? '+' : '') + diff.toFixed(2) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)';
+    chgEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+  } else {
+    document.getElementById('stk-px').textContent = '$44.94';
+    document.getElementById('stk-chg').textContent = '(cached)';
+    document.getElementById('stk-chg').style.color = 'var(--t3)';
+  }
+}).catch(function() {
+  document.getElementById('stk-px').textContent = '$44.94';
+  document.getElementById('stk-chg').textContent = '(offline)';
+  document.getElementById('stk-chg').style.color = 'var(--t3)';
+});
+
+// ── UTILITIES ──
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#x27;');
+}
+function isValidUrl(str) {
+  try {
+    var url = new URL(str);
+    return /^https?:/.test(url.protocol);
+  } catch(e) { return false; }
+}
+function createBookmarkSvg(filled) {
+  if (filled) {
+    return '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2z" fill="currentColor"/></svg>';
+  }
+  return '<svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2z"/></svg>';
+}
+
+function renderFeed(items, id) {
+  var el = document.getElementById(id);
+  if (!items || !items.length) {
+    el.innerHTML = '<div class="muted">No stories available</div>';
+    return;
+  }
+  var html = '';
+  var limit = Math.min(items.length, 15);
+  for (var i = 0; i < limit; i++) {
+    var item = items[i];
+    var timeStr = 'Recently';
+    if (item.pubDate) {
+      try {
+        var ms = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
+        if (!isNaN(ms) && ms > 0) {
+          var mins = Math.floor(ms / 60000);
+          timeStr = mins < 60 ? mins + 'm ago' : Math.floor(mins / 60) + 'h ago';
+        }
+      } catch(e) {}
+    }
+    var href = /^https?:\/\//i.test(item.link || '') ? item.link : '#';
+    var isSaved = bookmarks.some(function(b) { return b.link === href; });
+    html += '<div class="feed-item" style="display:flex;gap:12px;align-items:stretch;padding:0!important;border:none!important">'
+      + '<a href="' + escHtml(href) + '" target="_blank" rel="noopener" style="flex:1;padding:20px 24px;display:flex;flex-direction:column;justify-content:center">'
+      + '<div class="feed-t">' + escHtml(item.title || '') + '</div>'
+      + '<div class="feed-m" style="margin:10px 0 0"><span class="feed-src">' + escHtml(item.source || 'News') + '</span><span>' + timeStr + '</span></div>'
+      + '</a>'
+      + '<button class="bookmark-btn ' + (isSaved ? 'saved' : '') + '" data-title="' + escHtml(item.title || '') + '" data-url="' + escHtml(href) + '" data-source="' + escHtml(item.source || 'News') + '" title="Save article">' + createBookmarkSvg(isSaved) + '</button>'
+      + '</div>';
+  }
+  el.innerHTML = html;
+
+  document.querySelectorAll('#' + id + ' .bookmark-btn').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      var title = btn.getAttribute('data-title');
+      var url = btn.getAttribute('data-url');
+      var source = btn.getAttribute('data-source');
+      if (title && url) {
+        saveBookmark(title, url, source);
+        btn.classList.toggle('saved');
+      }
+    });
+  });
+}
+
+// ── FEED LOADER (shared for news + sports) ──
+function loadFeeds(configs, targetId) {
+  Promise.all(configs.map(function(c) { return fetchCached(c.url, c.key, 10); }))
+    .then(function(results) {
+      var all = [];
+      results.forEach(function(r, i) {
+        if (!r || !r.items) return;
+        r.items.forEach(function(item) {
+          item.source = configs[i].source;
+          try {
+            var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
+            if (!isNaN(age) && age > 86400000) return;
+          } catch(e) {}
+          if (item.link && item.title) all.push(item);
+        });
+      });
+      all.sort(function(a, b) { return new Date(b.pubDate) - new Date(a.pubDate); });
+      currentFeed = all;
+      renderFeed(all, targetId);
+    }).catch(function(err) {
+      console.error('Feed load error:', err);
+    });
+}
+
+// News split into Local (BC) / National (Canada) / World, switchable via sub-tabs.
+newsCategories = {
+  local: [
+    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fbc%2Ffeed%2F', key:'n_loc_gbc', source:'Global BC'},
+    {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-canada-britishcolumbia', key:'n_loc_cbc', source:'CBC BC'}
+  ],
+  national: [
+    {url:RSS+'https%3A%2F%2Fwww.cbc.ca%2Fcmlink%2Frss-topstories', key:'n_nat_cbc', source:'CBC News'},
+    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Ffeed%2F', key:'n_nat_gn', source:'Global News'}
+  ],
+  world: [
+    {url:RSS+'http%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Fworld%2Frss.xml', key:'n_wld_bbc', source:'BBC World'},
+    {url:RSS+'https%3A%2F%2Fglobalnews.ca%2Fworld%2Ffeed%2F', key:'n_wld_gn', source:'Global World'}
+  ]
+};
+function showNews(cat) { loadFeeds(newsCategories[cat] || newsCategories.local, 'news-feed'); }
+document.querySelectorAll('.ntab').forEach(function(b) {
+  b.addEventListener('click', function() {
+    if (b.classList.contains('on')) return;
+    document.querySelectorAll('.ntab').forEach(function(x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    document.getElementById('news-feed').innerHTML = '<div class="muted">Loading News…</div>';
+    showNews(b.dataset.news);
+  });
+});
+showNews('local');
+
+loadFeeds([
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.espn.com%2Fespn%2Frss%2Fnews', key:'s_espn', source:'ESPN'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.sportsnet.ca%2Ffeed%2F', key:'s_snet', source:'Sportsnet'},
+  {url:'https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.tsn.ca%2Frss%2Ffeed', key:'s_tsn', source:'TSN'}
+], 'sports-feed');
+
+// ── MY TEAMS TRACKER ──
+(function() {
+  var teams = [
+    {name:'Canucks', url:'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/van', type:'team'},
+    {name:'Raptors', url:'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/tor', type:'team'},
+    {name:'Blue Jays', url:'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/tor', type:'team'},
+    {name:'BC Lions', url:'https://site.api.espn.com/apis/site/v2/sports/football/cfl/scoreboard', type:'scoreboard'}
+  ];
+  var sfeed = document.getElementById('scores-feed');
+  // ESPN returns score as a string, number, or {value, displayValue} object — normalize it.
+  function scoreVal(c) {
+    if (!c || c.score == null) return '-';
+    if (typeof c.score === 'object') return c.score.displayValue != null ? c.score.displayValue : (c.score.value != null ? c.score.value : '-');
+    return c.score;
+  }
+  // True only if the given ISO date string falls on today's local calendar day.
+  function isToday(dateStr) {
+    if (!dateStr) return false;
+    var d = new Date(dateStr), now = new Date();
+    return !isNaN(d) && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+  }
+  Promise.all(teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); }))
+    .then(function(results) {
+      var html = '';
+      teams.forEach(function(t, i) {
+        var data = results[i];
+        try {
+          if (!data) { html += '<div class="score-card"><b>' + t.name + ':</b>&nbsp;Unavailable</div>'; return; }
+          if (t.type === 'scoreboard') {
+            var game = null;
+            if (data.events) data.events.some(function(ev) {
+              if (ev.name.indexOf('Lions') !== -1) { game = ev; return true; }
+            });
+            if (game && isToday(game.date)) {
+              var hm = game.competitions[0].competitors[0], aw = game.competitions[0].competitors[1];
+              html += '<div class="score-card"><div class="score-teams">'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
+                + '</div><div class="score-status">' + game.status.type.detail + '</div></div>';
+            } else {
+              html += '<div class="score-card" style="color:var(--t3)"><b>BC Lions</b>&nbsp;— No game today</div>';
+            }
+          } else {
+            var ev = data.team && data.team.nextEvent && data.team.nextEvent[0];
+            var evDate = ev && (ev.date || (ev.competitions && ev.competitions[0] && ev.competitions[0].date));
+            if (ev && isToday(evDate)) {
+              var hm = ev.competitions[0].competitors[0], aw = ev.competitions[0].competitors[1];
+              html += '<div class="score-card"><div class="score-teams">'
+                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
+                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
+                + '</div><div class="score-status">' + (ev.status ? ev.status.type.detail : '') + '</div></div>';
+            } else if (ev) {
+              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— No game today</div>';
+            } else {
+              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
+            }
+          }
+        } catch(e) {
+          console.warn('Score error for ' + t.name, e);
+          html += '<div class="score-card" style="color:var(--red)"><b>' + t.name + '</b>&nbsp;— Error</div>';
+        }
+      });
+      sfeed.innerHTML = html || '<div class="muted">No scores available</div>';
+    });
+})();
+
+// ── CALCULATOR ──
+function calcUpdate() {
+  document.getElementById('calc-val').textContent = calcCur;
+  var sym = {'*':'×','/':'÷','-':'−','+':'+'};
+  document.getElementById('calc-expr').textContent = calcPrev ? calcPrev + ' ' + (sym[calcOperator] || '') : '';
+}
+function calcNum(n) {
+  if (calcReset) { calcCur = ''; calcReset = false; }
+  if (calcCur === '0' && n !== '.') calcCur = '';
+  calcCur += n; calcUpdate();
+}
+function calcDot() {
+  if (calcReset) { calcCur = '0'; calcReset = false; }
+  if (calcCur.indexOf('.') === -1) calcCur += '.';
+  calcUpdate();
+}
+function calcOp(op) {
+  if (calcPrev && !calcReset) calcEqual();
+  calcPrev = calcCur; calcOperator = op; calcReset = true; calcUpdate();
+}
+function calcEqual() {
+  if (!calcPrev) return;
+  var a = parseFloat(calcPrev), b = parseFloat(calcCur), r;
+  if (calcOperator === '+') r = a + b;
+  else if (calcOperator === '-') r = a - b;
+  else if (calcOperator === '*') r = a * b;
+  else if (calcOperator === '/') r = b !== 0 ? a / b : 'Error';
+  calcCur = typeof r === 'number' ? String(parseFloat(r.toFixed(10))) : r;
+  calcPrev = ''; calcOperator = ''; calcReset = true; calcUpdate();
+}
+function calcClear()   { calcCur = '0'; calcPrev = ''; calcOperator = ''; calcReset = false; calcUpdate(); }
+function calcToggle()  { if (calcCur !== '0') calcCur = String(-parseFloat(calcCur)); calcUpdate(); }
+function calcPercent() { calcCur = String(parseFloat(calcCur) / 100); calcUpdate(); }
+
+// ── NOTES ──
+try { notes = JSON.parse(localStorage.getItem('notes_v4') || '[]'); } catch(e) { notes = []; }
+
+function renderNotes() {
+  var el = document.getElementById('notes-list');
+  if (!notes.length) { el.innerHTML = '<div class="muted">No saved notes.</div>'; return; }
+  var html = '';
+  for (var i = notes.length - 1; i >= 0; i--) {
+    html += '<div class="noterow">'
+      + '<div class="n-time">' + notes[i].d + '</div>'
+      + '<div class="n-txt">' + escHtml(notes[i].t) + '</div>'
+      + '<button class="n-del" onclick="delNote(' + i + ')">×</button>'
+      + '</div>';
+  }
+  el.innerHTML = html;
+}
+function saveNote() {
+  var el = document.getElementById('cap-input');
+  if (!el.value.trim()) return;
+  if (el.value.length > 5000) { alert('Note too long (max 5000 characters)'); return; }
+  var d = new Date();
+  notes.push({t: el.value.trim(), d: d.toLocaleDateString([], {month:'short', day:'numeric'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})});
+  try { localStorage.setItem('notes_v4', JSON.stringify(notes)); } catch(e) {}
+  el.value = ''; renderNotes();
+}
+function delNote(i) {
+  notes.splice(i, 1);
+  localStorage.setItem('notes_v4', JSON.stringify(notes));
+  renderNotes();
+}
+renderNotes();
+
+// ── DICTATION ──
+function toggleVoice() {
+  var btn = document.getElementById('voice-btn');
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Dictation not supported.'); return; }
+  if (isRec) { rec.stop(); return; }
+  rec = new SR();
+  rec.continuous = true;
+  rec.interimResults = true;
+  var base = document.getElementById('cap-input').value;
+  rec.onresult = function(e) {
+    var f = '', interim = '';
+    for (var j = e.resultIndex; j < e.results.length; j++) {
+      if (e.results[j].isFinal) f += e.results[j][0].transcript;
+      else interim += e.results[j][0].transcript;
+    }
+    base += f;
+    document.getElementById('cap-input').value = base + interim;
+  };
+  rec.onend = rec.onerror = function() { isRec = false; btn.innerHTML = '🎤 Dictate'; btn.classList.remove('rec'); };
+  rec.start();
+  isRec = true; btn.innerHTML = '⏹ Stop'; btn.classList.add('rec');
+}
+
+// ── STOCKS DROPDOWN CLICK-OUTSIDE LISTENER ──
+document.addEventListener('click', function(e) {
+  var dropdown = document.getElementById('stocks-dropdown');
+  var btn = document.querySelector('.dock-submenu-item[data-p="stocks"]');
+  if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+    dropdown.classList.remove('open');
+  }
+});
+</script>
 </body>
 </html>
