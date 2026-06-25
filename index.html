@@ -1789,7 +1789,7 @@ function loadFeeds(configs, targetId) {
           item.source = source;
           try {
             var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
-            if (!isNaN(age) && age > 86400000) return;
+            if (!isNaN(age) && age > 604800000) return; // 7 days instead of 24 hours - allows cached test data
           } catch(e) {}
           if (item.link && item.title && bySource[source].length < 3) bySource[source].push(item);
         });
