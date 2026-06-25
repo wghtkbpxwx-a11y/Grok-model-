@@ -1400,6 +1400,7 @@ function renderLinks() {
 renderBookmarks(); renderTasks(); renderLinks(); fetchStocks(); loadForecast();
 
 // ── EMBEDDED CACHED DATA (refreshed by GitHub Actions) ──
+console.log('=== DASHBOARD INITIALIZATION ===');
 var DASHBOARD_CACHE = {
   "weather": {
     "latitude": 49.18432,
@@ -1499,6 +1500,9 @@ function httpGet(url) {
 
   // First, check if this is cached weather data (embedded in HTML)
   if (url.includes('api.open-meteo.com')) {
+    console.log('Weather URL detected:', url);
+    console.log('DASHBOARD_CACHE exists:', !!DASHBOARD_CACHE);
+    console.log('DASHBOARD_CACHE.weather:', DASHBOARD_CACHE && DASHBOARD_CACHE.weather);
     if (DASHBOARD_CACHE && DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
       console.log('✓ Using embedded weather cache:', DASHBOARD_CACHE.weather.current.temperature_2m + '°C');
       return Promise.resolve(DASHBOARD_CACHE.weather);
