@@ -117,3 +117,13 @@ var DASHBOARD_CACHE = ${JSON.stringify(data)};`;
           git config --local user.name "GitHub Action"
           git add dashboard-cache.js dashboard-data.json index.html
           git diff --quiet && git diff --staged --quiet || (git commit -m "Update dashboard cache" && git push)
+
+      - name: Update gh-pages with latest cache
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git fetch origin gh-pages
+          git checkout -B gh-pages origin/gh-pages
+          cp dashboard-cache.js dashboard-data.json index.html ./
+          git add dashboard-cache.js dashboard-data.json index.html
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Sync cache updates to gh-pages" && git push origin gh-pages)
