@@ -364,22 +364,18 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
 
   <!-- DIRECT CACHE DISPLAY - bypasses async logic for immediate rendering -->
   <script>
-    // Wait for DOM to be ready, then immediately display cached data
+    // Display cached data directly
     function displayCachedDataDirectly() {
-      var feedbackDiv = document.createElement('div');
-      feedbackDiv.id = 'direct-display-feedback';
-      feedbackDiv.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#fff;padding:10px;font-size:11px;z-index:9999;max-width:200px;border:1px solid #666;border-radius:4px;max-height:120px;overflow:auto';
+      var debug = document.getElementById('debug-detailed');
       var feedback = [];
 
       if (!DASHBOARD_CACHE) {
-        feedback.push('✗ DASHBOARD_CACHE undefined');
-        feedbackDiv.style.borderColor = '#f00';
-        document.body.appendChild(feedbackDiv);
-        feedbackDiv.textContent = feedback.join('\n');
+        feedback.push('DISPLAY ERROR: Cache undefined');
+        if (debug) debug.innerHTML = '<span style="color:#ff6b6b">' + feedback.join(' | ') + '</span>';
         return;
       }
 
-      feedback.push('✓ Cache found');
+      feedback.push('DISPLAY: ');
 
       // Display weather
       if (DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
@@ -387,12 +383,10 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
         var liveTemp = document.getElementById('live-temp');
         if (liveTemp) {
           liveTemp.textContent = temp + '°C';
-          feedback.push('✓ Weather: ' + temp + '°C');
+          feedback.push('Weather=' + temp + '°C✓');
         } else {
-          feedback.push('✗ live-temp element missing');
+          feedback.push('WeatherEl✗');
         }
-      } else {
-        feedback.push('✗ No weather data');
       }
 
       // Display news directly
@@ -421,27 +415,21 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
           var newsFeed = document.getElementById('news-feed');
           if (newsFeed) {
             newsFeed.innerHTML = newsHtml;
-            feedback.push('✓ News: ' + newsCount + ' articles from ' + sourcesFound + ' sources');
+            feedback.push('News=' + newsCount + '✓');
           } else {
-            feedback.push('✗ news-feed element missing');
+            feedback.push('NewsEl✗');
           }
-        } else {
-          feedback.push('✗ No news items found');
         }
-      } else {
-        feedback.push('✗ No news in cache');
       }
 
-      feedbackDiv.style.borderColor = '#0f0';
-      feedbackDiv.textContent = feedback.join('\n');
-      if (document.body) document.body.appendChild(feedbackDiv);
+      if (debug) debug.innerHTML = feedback.join(' | ');
     }
 
-    // Call immediately when document is interactive
+    // Call when ready
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', displayCachedDataDirectly);
     } else {
-      displayCachedDataDirectly();
+      setTimeout(displayCachedDataDirectly, 50);
     }
   </script>
 
