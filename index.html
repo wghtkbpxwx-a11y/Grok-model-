@@ -1743,7 +1743,7 @@ function loadFeeds(configs, targetId) {
           item.source = source;
           try {
             var age = Date.now() - new Date(item.pubDate.replace(' ', 'T')).getTime();
-            if (!isNaN(age) && age > 86400000) return;
+            if (!isNaN(age) && age > 604800000) return;
           } catch(e) {}
           if (item.link && item.title && bySource[source].length < 3) bySource[source].push(item);
         });
