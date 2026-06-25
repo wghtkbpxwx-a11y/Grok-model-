@@ -1581,6 +1581,8 @@ try {
   if (cached) { geoCoords = JSON.parse(cached); }
 } catch(e) {}
 
+console.log('Initialized geoCoords:', geoCoords);
+
 function loadWeatherForCoords() {
   var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + geoCoords.lat + '&longitude=' + geoCoords.lon + '&current=temperature_2m,weather_code,is_day';
 
@@ -1620,17 +1622,20 @@ function loadWeatherForCoords() {
   });
 }
 
+// Load weather immediately with default coords
+console.log('Loading weather immediately with geoCoords:', geoCoords);
+loadWeatherForCoords();
+
+// Then try to get better location if available
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(function(pos) {
+    console.log('Geolocation succeeded:', pos.coords);
     geoCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
     saveLS('geo_coords_v1', geoCoords);
     loadWeatherForCoords();
   }, function(err) {
-    console.log('Geolocation denied, using default (Vancouver)');
-    loadWeatherForCoords();
+    console.log('Geolocation denied/failed:', err.message);
   });
-} else {
-  loadWeatherForCoords();
 }
 
 // ── STOCK (XEQT) ──
