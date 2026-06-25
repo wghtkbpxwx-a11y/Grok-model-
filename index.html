@@ -332,9 +332,11 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
   <!-- DEBUG INFO -->
   <div id="debug-cache" style="padding:12px;margin-bottom:12px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:12px;border:1px solid rgba(255,255,255,0.1)">
     <div id="cache-status">Checking cache...</div>
+    <div id="debug-detailed" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.7);font-family:monospace"></div>
   </div>
   <script>
     // Show cache status immediately
+    var debugLines = [];
     if (typeof DASHBOARD_CACHE !== 'undefined') {
       var status = 'Cache loaded: ';
       if (DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
@@ -348,19 +350,36 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
         status += 'News (' + newsCount + ' articles) ';
       }
       document.getElementById('cache-status').innerHTML = status;
+      debugLines.push('DASHBOARD_CACHE: ✓ defined');
+      debugLines.push('Document state: ' + document.readyState);
+      debugLines.push('live-temp element: ' + (document.getElementById('live-temp') ? '✓ found' : '✗ NOT FOUND'));
+      debugLines.push('news-feed element: ' + (document.getElementById('news-feed') ? '✓ found' : '✗ NOT FOUND'));
     } else {
       document.getElementById('cache-status').innerHTML = '<span style="color:#ff6b6b">ERROR: DASHBOARD_CACHE not defined!</span>';
+      debugLines.push('DASHBOARD_CACHE: ✗ NOT DEFINED');
     }
+    var debugEl = document.getElementById('debug-detailed');
+    if (debugEl) debugEl.innerHTML = debugLines.join(' | ');
   </script>
 
   <!-- DIRECT CACHE DISPLAY - bypasses async logic for immediate rendering -->
   <script>
     // Wait for DOM to be ready, then immediately display cached data
     function displayCachedDataDirectly() {
+      var feedbackDiv = document.createElement('div');
+      feedbackDiv.id = 'direct-display-feedback';
+      feedbackDiv.style.cssText = 'position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.8);color:#fff;padding:10px;font-size:11px;z-index:9999;max-width:200px;border:1px solid #666;border-radius:4px;max-height:120px;overflow:auto';
+      var feedback = [];
+
       if (!DASHBOARD_CACHE) {
-        console.log('No DASHBOARD_CACHE');
+        feedback.push('✗ DASHBOARD_CACHE undefined');
+        feedbackDiv.style.borderColor = '#f00';
+        document.body.appendChild(feedbackDiv);
+        feedbackDiv.textContent = feedback.join('\n');
         return;
       }
+
+      feedback.push('✓ Cache found');
 
       // Display weather
       if (DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
@@ -368,18 +387,24 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
         var liveTemp = document.getElementById('live-temp');
         if (liveTemp) {
           liveTemp.textContent = temp + '°C';
-          console.log('✓ Weather displayed:', temp + '°C');
+          feedback.push('✓ Weather: ' + temp + '°C');
+        } else {
+          feedback.push('✗ live-temp element missing');
         }
+      } else {
+        feedback.push('✗ No weather data');
       }
 
       // Display news directly
       if (DASHBOARD_CACHE.news) {
         var newsHtml = '';
         var newsCount = 0;
+        var sourcesFound = 0;
 
         for (var source in DASHBOARD_CACHE.news) {
           var newsSource = DASHBOARD_CACHE.news[source];
           if (newsSource.items && newsSource.items.length > 0) {
+            sourcesFound++;
             for (var i = 0; i < Math.min(3, newsSource.items.length); i++) {
               var item = newsSource.items[i];
               newsHtml += '<div class="feed-item" style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.05)">'
@@ -396,10 +421,20 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
           var newsFeed = document.getElementById('news-feed');
           if (newsFeed) {
             newsFeed.innerHTML = newsHtml;
-            console.log('✓ News displayed:', newsCount, 'articles');
+            feedback.push('✓ News: ' + newsCount + ' articles from ' + sourcesFound + ' sources');
+          } else {
+            feedback.push('✗ news-feed element missing');
           }
+        } else {
+          feedback.push('✗ No news items found');
         }
+      } else {
+        feedback.push('✗ No news in cache');
       }
+
+      feedbackDiv.style.borderColor = '#0f0';
+      feedbackDiv.textContent = feedback.join('\n');
+      if (document.body) document.body.appendChild(feedbackDiv);
     }
 
     // Call immediately when document is interactive
