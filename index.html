@@ -353,6 +353,63 @@ var DASHBOARD_CACHE = {"weather":{"latitude":49.18432,"longitude":-122.82682,"ge
     }
   </script>
 
+  <!-- DIRECT CACHE DISPLAY - bypasses async logic for immediate rendering -->
+  <script>
+    // Wait for DOM to be ready, then immediately display cached data
+    function displayCachedDataDirectly() {
+      if (!DASHBOARD_CACHE) {
+        console.log('No DASHBOARD_CACHE');
+        return;
+      }
+
+      // Display weather
+      if (DASHBOARD_CACHE.weather && DASHBOARD_CACHE.weather.current) {
+        var temp = Math.round(DASHBOARD_CACHE.weather.current.temperature_2m);
+        var liveTemp = document.getElementById('live-temp');
+        if (liveTemp) {
+          liveTemp.textContent = temp + '°C';
+          console.log('✓ Weather displayed:', temp + '°C');
+        }
+      }
+
+      // Display news directly
+      if (DASHBOARD_CACHE.news) {
+        var newsHtml = '';
+        var newsCount = 0;
+
+        for (var source in DASHBOARD_CACHE.news) {
+          var newsSource = DASHBOARD_CACHE.news[source];
+          if (newsSource.items && newsSource.items.length > 0) {
+            for (var i = 0; i < Math.min(3, newsSource.items.length); i++) {
+              var item = newsSource.items[i];
+              newsHtml += '<div class="feed-item" style="padding:16px;border-bottom:1px solid rgba(255,255,255,0.05)">'
+                + '<div style="font-size:14px;line-height:1.4">' + (item.title || 'No title') + '</div>'
+                + '<div style="margin-top:8px;font-size:12px;color:rgba(255,255,255,0.6)">'
+                + (item.source || source) + ' — ' + (item.pubDate || 'Recent')
+                + '</div></div>';
+              newsCount++;
+            }
+          }
+        }
+
+        if (newsHtml) {
+          var newsFeed = document.getElementById('news-feed');
+          if (newsFeed) {
+            newsFeed.innerHTML = newsHtml;
+            console.log('✓ News displayed:', newsCount, 'articles');
+          }
+        }
+      }
+    }
+
+    // Call immediately when document is interactive
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', displayCachedDataDirectly);
+    } else {
+      displayCachedDataDirectly();
+    }
+  </script>
+
   <!-- LIVE PANEL: GLANCEABLE DASHBOARD ESSENTIALS -->
   <section class="panel on" id="p-live">
     <!-- Hero: Time + Weather -->
