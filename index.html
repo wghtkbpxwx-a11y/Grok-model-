@@ -1404,20 +1404,48 @@ var DASHBOARD_CACHE = {
   "weather": {
     "latitude": 49.18432,
     "longitude": -122.82682,
+    "generationtime_ms": 0.09,
     "current": {
-      "time": "2026-06-24T23:15",
+      "time": "2026-06-24T23:30",
       "interval": 900,
       "temperature_2m": 28.2,
-      "weather_code": 1,
+      "weather_code": 2,
       "is_day": 1
     }
   },
   "news": {
-    "https://globalnews.ca/bc/feed/": {"status": "ok", "items": []},
-    "https://www.cbc.ca/cmlink/rss-canada-britishcolumbia": {"status": "ok", "items": []},
-    "https://www.bbc.com/news/world/rss.xml": {"status": "ok", "items": []}
+    "https://globalnews.ca/bc/feed/": {
+      "status": "ok",
+      "items": [
+        {"title":"B.C. businesses face uncertainty ahead of CUSMA review next week","pubDate":"2026-06-24 22:40:02","link":"https://globalnews.ca/news/11937259/bc-businesses-uncertainty-cusma-review/","source":"Global BC"},
+        {"title":"Former B.C. corrections officer sentenced for breach of trust","pubDate":"2026-06-24 21:36:08","link":"https://globalnews.ca/news/11937138/former-bc-corrections-officer-sentenced-breach-trust-relationship-inmate/","source":"Global BC"},
+        {"title":"Okanagan Falls to be incorporated as B.C.'s newest municipality in November","pubDate":"2026-06-24 20:29:21","link":"https://globalnews.ca/news/11937128/bc-okanagan-falls-incorporated-november/","source":"Global BC"},
+        {"title":"B.C. murder suspect evidence at trial 'not credible' or 'logical,' Crown lawyer says","pubDate":"2026-06-24 18:28:54","link":"https://globalnews.ca/news/11936801/lumby-bc-murder/","source":"Global BC"},
+        {"title":"'A big inspiration': Ashtrey Recovery Resource Centre to open in Vancouver's DTES","pubDate":"2026-06-24 17:24:35","link":"https://globalnews.ca/news/11936594/ashtrey-recovery-resource-centre-open-vancouver-dtes/","source":"Global BC"}
+      ]
+    },
+    "https://www.cbc.ca/cmlink/rss-canada-britishcolumbia": {
+      "status": "ok",
+      "items": [
+        {"title":"Canada finishes 2nd in World Cup Group B after 2-1 loss to Switzerland","pubDate":"2026-06-11 20:05:56","link":"https://www.cbc.ca/sports/soccer/worldcup/fifa-canada-world-cup-canada-switzerland-recap-june-24-9.7246842","source":"CBC BC"},
+        {"title":"Scorching weather results in 21 B.C. communities breaking max temperature records","pubDate":"2026-06-24 23:04:43","link":"https://www.cbc.ca/news/canada/british-columbia/bc-heat-weather-records-fall-9.7247997","source":"CBC BC"},
+        {"title":"Stash of drugs, $1.5M in cash discovered after multi-year investigation in B.C.","pubDate":"2026-06-24 23:22:37","link":"https://www.cbc.ca/news/canada/british-columbia/drugs-bust-delta-metro-vancouver-9.7247982","source":"CBC BC"},
+        {"title":"Prosecutor says testimony of man accused of killing ex-wife in B.C. Interior 'inconsistent'","pubDate":"2026-06-24 22:53:50","link":"https://www.cbc.ca/news/canada/british-columbia/vitali-stefanski-trial-closing-arguments-9.7247949","source":"CBC BC"},
+        {"title":"B.C. government puts Victoria-Saanich amalgamation vote on hold","pubDate":"2026-06-24 21:46:33","link":"https://www.cbc.ca/news/canada/british-columbia/victoria-saanich-amalgamation-debate-government-yellow-light-9.7247811","source":"CBC BC"}
+      ]
+    },
+    "https://www.bbc.com/news/world/rss.xml": {
+      "status": "ok",
+      "items": [
+        {"title":"France, UK and Spain see record temperatures as heatwave grips western Europe","pubDate":"2026-06-24 21:39:18","link":"https://www.bbc.co.uk/news/articles/c78y4102n1zo","source":"BBC World"},
+        {"title":"Air conditioning creates political divide after France records hottest day","pubDate":"2026-06-24 13:51:24","link":"https://www.bbc.co.uk/news/articles/c4gyqldl3p5o","source":"BBC World"},
+        {"title":"UN nuclear chief says inspectors will visit Iran sites as part of war deal","pubDate":"2026-06-24 17:31:48","link":"https://www.bbc.co.uk/news/articles/cpd395zv81vo","source":"BBC World"},
+        {"title":"Clean sweep for Mamdani-backed candidates in New York's Democratic primary","pubDate":"2026-06-24 13:03:35","link":"https://www.bbc.co.uk/news/articles/clye652m41po","source":"BBC World"},
+        {"title":"Biggest city in Crimea without power after Ukraine strikes","pubDate":"2026-06-24 09:48:24","link":"https://www.bbc.co.uk/news/articles/c3ryv72pjqno","source":"BBC World"}
+      ]
+    }
   },
-  "updated": "2026-06-24T23:24:15.974Z"
+  "updated": "2026-06-24T23:37:10.739Z"
 };
 
 // ── DIAGNOSTIC TEST FOR FETCH/API SUPPORT ──
@@ -1482,16 +1510,27 @@ function httpGet(url) {
   // Check if this is cached news data (embedded in HTML)
   if (url.includes('rss2json.com')) {
     if (DASHBOARD_CACHE && DASHBOARD_CACHE.news) {
-      var newsKeys = Object.keys(DASHBOARD_CACHE.news);
-      if (newsKeys.length > 0) {
-        // Return the first available news source with items
-        for (var i = 0; i < newsKeys.length; i++) {
-          var source = newsKeys[i];
-          var newsData = DASHBOARD_CACHE.news[source];
-          if (newsData && newsData.items && newsData.items.length > 0) {
-            console.log('✓ Using embedded news cache from:', source, '(' + newsData.items.length + ' items)');
-            return Promise.resolve(newsData);
+      // Try to extract the feed URL from the rss2json proxy URL
+      var match = url.match(/rss_url=([^&]+)/);
+      if (match) {
+        var encodedFeed = match[1];
+        var decodedFeed = decodeURIComponent(encodedFeed);
+        if (DASHBOARD_CACHE.news[decodedFeed]) {
+          var cachedData = DASHBOARD_CACHE.news[decodedFeed];
+          if (cachedData && cachedData.items && cachedData.items.length > 0) {
+            console.log('✓ Using embedded news cache from:', decodedFeed, '(' + cachedData.items.length + ' items)');
+            return Promise.resolve(cachedData);
           }
+        }
+      }
+      // Fallback: return first available news source with items
+      var newsKeys = Object.keys(DASHBOARD_CACHE.news);
+      for (var i = 0; i < newsKeys.length; i++) {
+        var source = newsKeys[i];
+        var newsData = DASHBOARD_CACHE.news[source];
+        if (newsData && newsData.items && newsData.items.length > 0) {
+          console.log('✓ Using embedded news cache (fallback) from:', source, '(' + newsData.items.length + ' items)');
+          return Promise.resolve(newsData);
         }
       }
     }
@@ -1839,69 +1878,13 @@ loadFeeds([
 ], 'sports-feed');
 
 // ── MY TEAMS TRACKER ──
+// Disabled in Tesla browser since ESPN APIs are blocked
+// Scores will be available when cached sports data is added to DASHBOARD_CACHE
 (function() {
-  var teams = [
-    {name:'Canucks', url:'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/van', type:'team'},
-    {name:'Raptors', url:'https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/tor', type:'team'},
-    {name:'Blue Jays', url:'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/tor', type:'team'},
-    {name:'BC Lions', url:'https://site.api.espn.com/apis/site/v2/sports/football/cfl/scoreboard', type:'scoreboard'}
-  ];
   var sfeed = document.getElementById('scores-feed');
-  // ESPN returns score as a string, number, or {value, displayValue} object — normalize it.
-  function scoreVal(c) {
-    if (!c || c.score == null) return '-';
-    if (typeof c.score === 'object') return c.score.displayValue != null ? c.score.displayValue : (c.score.value != null ? c.score.value : '-');
-    return c.score;
+  if (sfeed) {
+    sfeed.innerHTML = '<div class="muted" style="text-align:center;padding:40px 20px;background:rgba(100,100,100,0.1);border-radius:12px;margin:20px;line-height:1.6"><div style="font-size:14px;font-weight:500;margin-bottom:4px">Scores unavailable</div><div style="font-size:11px;color:var(--t3)">Sports APIs cannot be accessed in this browser</div></div>';
   }
-  // True only if the given ISO date string falls on today's local calendar day.
-  function isToday(dateStr) {
-    if (!dateStr) return false;
-    var d = new Date(dateStr), now = new Date();
-    return !isNaN(d) && d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
-  }
-  Promise.all(teams.map(function(t) { return fetchCached(t.url, 'sc_' + t.name, 5); }))
-    .then(function(results) {
-      var html = '';
-      teams.forEach(function(t, i) {
-        var data = results[i];
-        try {
-          if (!data) { html += '<div class="score-card"><b>' + t.name + ':</b>&nbsp;Unavailable</div>'; return; }
-          if (t.type === 'scoreboard') {
-            var game = null;
-            if (data.events) data.events.some(function(ev) {
-              if (ev.name.indexOf('Lions') !== -1) { game = ev; return true; }
-            });
-            if (game && isToday(game.date)) {
-              var hm = game.competitions[0].competitors[0], aw = game.competitions[0].competitors[1];
-              html += '<div class="score-card"><div class="score-teams">'
-                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
-                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
-                + '</div><div class="score-status">' + game.status.type.detail + '</div></div>';
-            } else {
-              html += '<div class="score-card" style="color:var(--t3)"><b>BC Lions</b>&nbsp;— No game today</div>';
-            }
-          } else {
-            var ev = data.team && data.team.nextEvent && data.team.nextEvent[0];
-            var evDate = ev && (ev.date || (ev.competitions && ev.competitions[0] && ev.competitions[0].date));
-            if (ev && isToday(evDate)) {
-              var hm = ev.competitions[0].competitors[0], aw = ev.competitions[0].competitors[1];
-              html += '<div class="score-card"><div class="score-teams">'
-                + '<div class="score-row"><span>' + aw.team.shortDisplayName + '</span><span>' + scoreVal(aw) + '</span></div>'
-                + '<div class="score-row"><span>' + hm.team.shortDisplayName + '</span><span>' + scoreVal(hm) + '</span></div>'
-                + '</div><div class="score-status">' + (ev.status ? ev.status.type.detail : '') + '</div></div>';
-            } else if (ev) {
-              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— No game today</div>';
-            } else {
-              html += '<div class="score-card" style="color:var(--t3)"><b>' + t.name + '</b>&nbsp;— Off-season</div>';
-            }
-          }
-        } catch(e) {
-          console.warn('Score error for ' + t.name, e);
-          html += '<div class="score-card" style="color:var(--red)"><b>' + t.name + '</b>&nbsp;— Error</div>';
-        }
-      });
-      sfeed.innerHTML = html || '<div class="muted">No scores available</div>';
-    });
 })();
 
 // ── CALCULATOR ──
